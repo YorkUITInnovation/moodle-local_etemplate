@@ -24,7 +24,7 @@ class emails
     public function __construct()
     {
         global $DB;
-        $this->results = $DB->get_records('local_et_email', [], 'name', ASC);
+        $this->results = $DB->get_records('local_et_email', [], 'name');
     }
 
     /**

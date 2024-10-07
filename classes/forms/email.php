@@ -2,7 +2,7 @@
 
 namespace local_etemplate;
 
-use local_helpers\base;
+use local_etemplate\base;
 use local_etemplate\email;
 
 defined('MOODLE_INTERNAL') || die();
@@ -52,7 +52,7 @@ class email_form extends \moodleform
         $mform->addElement(
             'hidden',
             'messagetype',
-            base::MESSAGE_TYPE_EMAIL
+            email::MESSAGE_TYPE_EMAIL
         );
         $mform->addElement(
             'header',

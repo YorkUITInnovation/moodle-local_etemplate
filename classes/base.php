@@ -253,4 +253,8 @@ class base
         $out = str_replace('%%', '%', $out);
         return $out;
     }
+    public static function get_editor_options($context) {
+        global $CFG;
+        return array('subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0);
+    }
 }

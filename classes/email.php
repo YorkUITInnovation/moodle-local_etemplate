@@ -171,7 +171,7 @@ class email extends crud
      */
     public function get_record(): \stdClass
     {
-        return $this->record;
+        return parent::get_record();
     }
 
     /**
@@ -281,7 +281,7 @@ class email extends crud
     /**
      * @param Type: bigint (18)
      */
-    public function set_id($id)
+    public function set_id(int $id): void
     {
         $this->id = $id;
     }

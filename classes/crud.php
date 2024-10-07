@@ -105,6 +105,15 @@ abstract class crud
     }
 
     /**
+     * Set the ID for this object.
+     *
+     * @param int $id The ID to set.
+     */
+    public function set_id(int $id): void {
+        $this->id = $id;
+    }
+
+    /**
      * /* get table
      **/
     public function get_table(): string
@@ -112,4 +121,13 @@ abstract class crud
         return $this->table;
     }
 
+    /**
+     * Set the table for this object.
+     *
+     * @param string $table The name of the table to set.
+     */
+    public function set_table(string $table): void
+    {
+        $this->table = $table;
+    }
 }

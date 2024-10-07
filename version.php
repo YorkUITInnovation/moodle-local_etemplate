@@ -1,7 +1,7 @@
 <?php
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024100300;
+$plugin->version = 2024100700;
 $plugin->component = 'local_etemplate';
 $plugin->release = '0.0.1';
 $plugin->requires = 2019052000;

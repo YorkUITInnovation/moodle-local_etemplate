@@ -3,7 +3,7 @@
 require_once("../../config.php");
 require_once ($CFG->dirroot . "/local/etemplate/classes/forms/email.php");
 
-use local_helpers\base;
+use local_etemplate\base;
 use local_etemplate\email;
 
 require_login(1, FALSE);
@@ -96,8 +96,8 @@ echo base::page(
     $context
 );
 
-echo $OUTPUT->header();
 //**********************
+echo $OUTPUT->header();
 //*** DISPLAY HEADER ***
 //
 $mform->display();

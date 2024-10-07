@@ -1,6 +1,7 @@
 <?php
 $string['active'] = 'Active';
 $string['add_email_template'] = 'Add email template';
+$string['all_email_templates'] = 'All email templates';
 $string['edit_email_template'] = 'Edit email template';
 $string['email'] = 'Email';
 $string['error_name'] = 'Name is required';
