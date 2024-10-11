@@ -19,5 +19,11 @@ $string['subject_help'] = 'The subject of the email';
 $string['system_reserved'] = 'System reserved';
 $string['system_reserved_help'] = 'System reserved templates cannot be deleted or modified';
 
-// Access permissions
+/**
+ * Capabilities
+ */
 $string['etemplate:view_system_reserved'] = 'View system reserved templates';
+$string['etemplate:create'] = 'Create email templates';
+$string['etemplate:delete'] = 'Delete email templates';
+$string['etemplate:edit'] = 'Edit email templates';
+$string['etemplate:view'] = 'View email templates';
