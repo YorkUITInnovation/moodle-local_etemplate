@@ -1,0 +1,4 @@
+table#local_etemplates_email_list > tbody > tr.disabled{
+  background-color: darkred;
+  color: red;
+}

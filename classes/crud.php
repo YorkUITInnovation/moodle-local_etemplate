@@ -85,11 +85,13 @@ abstract class crud
         global $DB, $USER;
 
         if (!isset($data->timemodified)) {
-            $data->timemodified = time();
+            $data->set_timemodified(time());
         }
 
         //Set user
-        $data->usermodified = $USER->id;
+        if (!isset($data->usermodified)){
+            $data->set_usermodified($USER->id);
+        }
 
         $id = $DB->update_record($this->table, $data);
 
@@ -129,5 +131,23 @@ abstract class crud
     public function set_table(string $table): void
     {
         $this->table = $table;
+    }
+
+    /**
+     * Update the timemodified for this object.
+     *
+     * @param int $timemodified.
+     */
+    public function set_timemodified(int $timemodified)
+    {
+        $this->timemodified = $timemodified;
+    }
+
+    /**
+     * @param Type: bigint (18)
+     */
+    public function set_usermodified(int $usermodified)
+    {
+        $this->usermodified = $usermodified;
     }
 }

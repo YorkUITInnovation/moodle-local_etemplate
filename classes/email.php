@@ -119,6 +119,11 @@ class email extends crud
      */
     private $record;
 
+    /**
+     *
+     * @var int
+     */
+    private $unit;
 
     /**
      *
@@ -361,7 +366,7 @@ class email extends crud
     /**
      * @param Type: bigint (18)
      */
-    public function set_usermodified($usermodified)
+    public function set_usermodified(int $usermodified)
     {
         $this->usermodified = $usermodified;
     }
@@ -377,9 +382,32 @@ class email extends crud
     /**
      * @param Type: bigint (18)
      */
-    public function set_timemodified($timemodified)
+    public function set_timemodified(int $timemodified)
     {
         $this->timemodified = $timemodified;
     }
 
+    public function delete_email(int $id){
+        global $USER;
+        $data = $this->get_record($id);
+        $data->deleted = 1;
+        $data->timemodified = time();
+        $data->usermodified = $USER->id;
+        $this->update_record($data);
+    }
+    public function undelete_email(int $id){
+        global $USER;
+        $data = $this->get_record($id);
+        $data->deleted = 0;
+        $data->timemodified = time();
+        $data->usermodified = $USER->id;
+        $this->update_record($data);
+    }
+    public function set_unit(int $unit)
+    {
+        $this->unit = $unit;
+    }
+    public function get_unit(){
+        return $this->unit;
+    }
 }

@@ -67,6 +67,16 @@ class email_form extends \moodleform
 
         $mform->addElement(
             'text',
+            'unit',
+            get_string('unit', 'local_etemplate')
+        );
+        $mform->addHelpButton(
+            'unit',
+            'unit',
+            'local_etemplate'
+        );
+        $mform->addElement(
+            'text',
             'subject',
             get_string('subject', 'local_etemplate')
         );
@@ -126,6 +136,10 @@ class email_form extends \moodleform
         );
         $mform->setType(
             'parentid',
+            PARAM_INT
+        );
+        $mform->setType(
+            'unit',
             PARAM_INT
         );
         $mform->setType(
