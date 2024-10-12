@@ -4,6 +4,11 @@ namespace local_etemplate;
 
 use local_etemplate\base;
 use local_etemplate\email;
+use local_organization\unit;
+use local_organization\units;
+use local_organization\department;
+use local_organization\departments;
+
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -32,6 +37,26 @@ class email_form extends \moodleform
                 'local_etemplate'
             )
         ];
+
+	$units = new units();
+	$units = $units->get_records();
+	$departments = new departments();
+	$departments = $departments->get_records();
+	$unitselect = [];
+	foreach ($units as $check){
+		$unit = new unit($check->id);
+		$unitselect[$unit->get_id()] = $unit->get_name();
+	}
+	foreach ($departments as $check){
+		$dep = new department($check->id);
+		$depunitid = $dep->get_unit_id();
+		$depunit = new unit($depunitid);
+		$unitselect[$depunit->get_id() . "_" . $check->id] = $depunit->get_name() . " / " . $dep->get_name();
+	}
+
+	usort($unitselect, function ($a, $b) {
+	    return strcasecmp($a, $b);
+	});
 
         $langs = get_string_manager()->get_list_of_translations();
 
@@ -66,9 +91,10 @@ class email_form extends \moodleform
         );
 
         $mform->addElement(
-            'text',
+            'select',
             'unit',
-            get_string('unit', 'local_etemplate')
+            get_string('unit', 'local_etemplate'),
+	    $unitselect
         );
         $mform->addHelpButton(
             'unit',

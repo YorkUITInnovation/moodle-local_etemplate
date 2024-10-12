@@ -3,12 +3,18 @@ require_once("../../config.php");
 
 use local_etemplate\base;
 use local_etemplate\emails;
+use local_organization\unit;
+use local_organization\units;
+use local_organization\department;
+use local_organization\departments;
 
 $context = context_system::instance();
 $PAGE->set_context($context);
 $page_header = get_string('all_email_templates', 'local_etemplate');
 $emails = new emails();
 $alltemplates = $emails->get_records();
+$units = new units();
+$allunits = $units->get_records();
 $table = new html_table();
 $table->id = 'local_etemplates_email_list';
 $content = "";
@@ -46,11 +52,25 @@ foreach ($alltemplates as $template){
         ]);
     }
     $actions = $viewbutton . $editbutton . $deletebutton;
+    if (is_numeric($template->unit)) {
+        $unit = new unit($template->unit);
+	$unitinfo = $unit->get_name();
+    } else {
+        $explodedUnit = explode("_", $template->unit);
+        if (count($explodedUnit) == 2) {
+            $newUnit = new unit($explodedUnit[0]);
+            $newDepartment = new department($explodedUnit[1]);
+	    $unitinfo = $newUnit->get_name() . $newDepartment->get_name();
+        } else {
+            // handle error case where unit is not numeric and does not have two parts separated by "_"
+        }
+    }
+
     $row = new html_table_row();
     if ($template->deleted == 1) {
         $row->attributes['class'] = 'disabled';
     }
-    $row->cells = array($template->unit, $template->name, $template->subject, $template->lang, $template->active, $template->timecreated, $template->timemodified,$actions);
+    $row->cells = array($unitinfo, $template->name, $template->subject, $template->lang, $template->active, $template->timecreated, $template->timemodified,$actions);
     $table->data[] = $row;
 }
 $content .= html_writer::table($table);
