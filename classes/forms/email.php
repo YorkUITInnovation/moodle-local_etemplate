@@ -54,9 +54,10 @@ class email_form extends \moodleform
 		$unitselect[$depunit->get_id() . "_" . $check->id] = $depunit->get_name() . " / " . $dep->get_name();
 	}
 
-	usort($unitselect, function ($a, $b) {
+	uasort($unitselect, function($a, $b) {
 	    return strcasecmp($a, $b);
 	});
+
 
         $langs = get_string_manager()->get_list_of_translations();
 
@@ -101,6 +102,7 @@ class email_form extends \moodleform
             'unit',
             'local_etemplate'
         );
+
         $mform->addElement(
             'text',
             'subject',
@@ -166,7 +168,7 @@ class email_form extends \moodleform
         );
         $mform->setType(
             'unit',
-            PARAM_INT
+            PARAM_TEXT
         );
         $mform->setType(
             'subject',
