@@ -26,5 +26,11 @@ $string['undelete'] = 'Undelete';
 $string['unit'] = 'Unit';
 $string['unit_help'] = 'Enter the unit this template belongs to, this can be your faculty or department';
 
-// Access permissions
+/**
+ * Capabilities
+ */
 $string['etemplate:view_system_reserved'] = 'View system reserved templates';
+$string['etemplate:create'] = 'Create email templates';
+$string['etemplate:delete'] = 'Delete email templates';
+$string['etemplate:edit'] = 'Edit email templates';
+$string['etemplate:view'] = 'View email templates';
