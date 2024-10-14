@@ -60,7 +60,7 @@ foreach ($alltemplates as $template){
         if (count($explodedUnit) == 2) {
             $newUnit = new unit($explodedUnit[0]);
             $newDepartment = new department($explodedUnit[1]);
-	    $unitinfo = $newUnit->get_name() . $newDepartment->get_name();
+	    $unitinfo = $newUnit->get_name() . " / " . $newDepartment->get_name();
         } else {
             // handle error case where unit is not numeric and does not have two parts separated by "_"
         }
