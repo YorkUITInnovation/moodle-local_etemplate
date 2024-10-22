@@ -29,8 +29,9 @@ $string['unit_help'] = 'Enter the unit this template belongs to, this can be you
 /**
  * Capabilities
  */
-$string['etemplate:view_system_reserved'] = 'View system reserved templates';
 $string['etemplate:create'] = 'Create email templates';
 $string['etemplate:delete'] = 'Delete email templates';
 $string['etemplate:edit'] = 'Edit email templates';
+$string['etemplate:undelete'] = 'Undelete email templates';
 $string['etemplate:view'] = 'View email templates';
+$string['etemplate:view_system_reserved'] = 'View system reserved templates';

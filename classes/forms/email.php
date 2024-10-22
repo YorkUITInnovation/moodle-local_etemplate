@@ -38,32 +38,39 @@ class email_form extends \moodleform
             )
         ];
 
-	$units = new units();
-	$units = $units->get_records();
-	$departments = new departments();
-	$departments = $departments->get_records();
-	$unitselect = [];
-	foreach ($units as $check){
-		$unit = new unit($check->id);
-		$unitselect[$unit->get_id()] = $unit->get_name();
-	}
-	foreach ($departments as $check){
-		$dep = new department($check->id);
-		$depunitid = $dep->get_unit_id();
-		$depunit = new unit($depunitid);
-		$unitselect[$depunit->get_id() . "_" . $check->id] = $depunit->get_name() . " / " . $dep->get_name();
-	}
+        $units = new units();
+        $units = $units->get_records();
+        $departments = new departments();
+        $departments = $departments->get_records();
+        $unitselect = [];
 
-	uasort($unitselect, function($a, $b) {
-	    return strcasecmp($a, $b);
-	});
+        foreach ($units as $check){
+            $unit = new unit($check->id);
+            //check if user belongs to unit (NOT just department)
+            if (\local_organization\base::has_capability('local/etemplate:create',$context,$USER->id,true,$check->id, 'UNIT')
+                || is_siteadmin($USER->id)){
+                $unitselect[$unit->get_id()] = $unit->get_name();
+            }
+        }
+        foreach ($departments as $check){
+            $dep = new department($check->id);
+            $depunitid = $dep->get_unit_id();
+            $depunit = new unit($depunitid);
+            //check if user belongs to unit OR department
+            if (\local_organization\base::has_capability('local/etemplate:create', $context, $USER->id, true, $depunit->get_id() . '_' . $check->id, 'DEPARTMENT')
+                ||
+                \local_organization\base::has_capability('local/etemplate:create', $context, $USER->id, true, $dep->get_unit_id(), 'UNIT')
+                || is_siteadmin($USER->id)) {
+                $unitselect[$depunit->get_id() . '_' . $check->id] = $depunit->get_name() . " / " . $dep->get_name();
+            }
+        }
+
+        uasort($unitselect, function($a, $b) {
+            return strcasecmp($a, $b);
+        });
 
 
         $langs = get_string_manager()->get_list_of_translations();
-
-        $sysAdminRole = $DB->get_record('role', ['shortname' => 'yulearn_sys_admin']);
-
-        // $DB->get_record('yulearn_', ['id' => $formdata->id]);
 
         $mform->addElement(
             'hidden',

@@ -55,5 +55,16 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
+    /**
+     * Undelete email templates
+     */
+    'local/etemplate:undelete' => array(
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW
+        )
+    ),
 
 );
