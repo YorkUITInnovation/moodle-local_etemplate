@@ -158,6 +158,7 @@ class email extends crud
         $this->messagetype = $result->messagetype ?? 0;
         $this->systemreserved = $result->systemreserved ?? 0;
         $this->deleted = $result->deleted ?? 0;
+        $this->unit = $result->unit ?? 0;
         $this->usermodified = $result->usermodified ?? 0;
         $this->timecreated = $result->timecreated ?? 0;
         $this->timecreated_hr = '';

@@ -16,11 +16,22 @@ $id = optional_param(
     PARAM_INT
 );
 
+
 $context = context_system::instance();
 
 if ($id) {
     $EMAIL = new email($id);
     $formdata = $EMAIL->get_record();
+
+    $unit = $EMAIL->get_unit();
+    //check perms
+    //grab unit/department info
+    $permissioninfo = \local_etemplate\base::getTemplatePermissions($unit, $context, $USER->id);
+    if ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] === true){
+        redirect(new moodle_url('/local/etemplate/view_email.php', array('id' => $id, 'errormsg' => 'noed')));
+    } elseif ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] !== true){
+        redirect(new moodle_url('/local/etemplate/email_templates.php', array('errormsg' => 'noview')));
+    }
 
     $draftid = file_get_submitted_draft_itemid('messagebodyeditor');
     $current_text = file_prepare_draft_area(

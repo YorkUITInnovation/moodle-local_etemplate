@@ -6,6 +6,15 @@ use local_etemplate\email;
 
 $id = required_param('id', PARAM_INT);
 
+$errmsg = optional_param('errormsg','',PARAM_TEXT);
+if (!empty($errmsg)){
+    $notification = new \core\notification();
+    $messagetext = get_string('message_' . $errmsg, 'local_etemplate');
+    $errormessage = $notification->error($messagetext, '');
+} else {
+    $errormessage = '';
+}
+
 $context = context_system::instance();
 $PAGE->set_context($context);
 $page_header = get_string('email_template', 'local_etemplate');
@@ -41,6 +50,7 @@ echo base::page(
 echo $OUTPUT->header();
 //*** DISPLAY HEADER ***
 //
+echo $errormessage;
 echo $content;
 //**********************
 //*** DISPLAY FOOTER ***

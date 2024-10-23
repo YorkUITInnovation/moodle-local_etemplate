@@ -2,6 +2,10 @@
 
 namespace local_etemplate;
 
+use local_organization\unit;
+use local_organization\department;
+
+
 //TO DO: Change this into a Singleton and get rid of static functions
 class base
 {
@@ -256,5 +260,61 @@ class base
     public static function get_editor_options($context) {
         global $CFG;
         return array('subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0);
+    }
+    public static function getTemplatePermissions($unitid, $context, $userid = null) {
+        global $USER;
+        if (!$userid){
+            $userid = $USER->id;
+        }
+        $permissions = array();
+        if (is_numeric($unitid)) {
+            $unitclass = new \local_organization\unit($unitid);
+            $unitInfo = $unitclass->get_name();
+            // unit permission checks
+            $permissions = array(
+                'canCreate' => \local_organization\base::has_capability('local/etemplate:create', $context, $userid, true, $unitid, 'UNIT'),
+                'canDelete' => \local_organization\base::has_capability('local/etemplate:delete', $context, $userid, true, $unitid, 'UNIT'),
+                'canEdit' => \local_organization\base::has_capability('local/etemplate:edit', $context, $userid, true, $unitid, 'UNIT'),
+                'canUndelete' => \local_organization\base::has_capability('local/etemplate:undelete', $context, $userid, true, $unitid, 'UNIT'),
+                'canView' => \local_organization\base::has_capability('local/etemplate:view', $context, $userid, true, $unitid, 'UNIT'),
+                'canViewSystemReserved' => \local_organization\base::has_capability('local/etemplate:view_system_reserved', $context, $userid, true, $unitid, 'UNIT'),
+                'unitInfo' => $unitInfo,
+            );
+        } else {
+            $explodedUnit = explode("_", $unitid);
+            if (count($explodedUnit) == 2) {
+                $unit = new \local_organization\unit($explodedUnit[0]);
+                $department = new \local_organization\department($explodedUnit[1]);
+                $unitInfo = "";
+                if ($unit->get_name() != "") {
+                    $unitInfo .= $unit->get_name();
+                } else {
+                    $unitInfo .= "{missing unit/faculty}";
+                }
+                $unitInfo .= " / ";
+                if ($department->get_name() != "") {
+                    $unitInfo .= $department->get_name();
+                } else {
+                    $unitInfo .= "{missing department}";
+                }
+            }
+            // department permission checks
+            $permissions = array(
+                'canCreate' => \local_organization\base::has_capability('local/etemplate:create', $context, $userid, true, $department->get_id(), 'DEPARTMENT') ||
+                    \local_organization\base::has_capability('local/etemplate:create', $context, $userid, true, $unit->get_id(), 'UNIT'),
+                'canDelete' => \local_organization\base::has_capability('local/etemplate:delete', $context, $userid, true, $department->get_id(), 'DEPARTMENT') ||
+                    \local_organization\base::has_capability('local/etemplate:delete', $context, $userid, true, $unit->get_id(), 'UNIT'),
+                'canEdit' => \local_organization\base::has_capability('local/etemplate:edit', $context, $userid, true, $department->get_id(), 'DEPARTMENT') ||
+                    \local_organization\base::has_capability('local/etemplate:edit', $context, $userid, true, $unit->get_id(), 'UNIT'),
+                'canUndelete' => \local_organization\base::has_capability('local/etemplate:undelete', $context, $userid, true, $department->get_id(), 'DEPARTMENT') ||
+                    \local_organization\base::has_capability('local/etemplate:undelete', $context, $userid, true, $unit->get_id(), 'UNIT'),
+                'canView' => \local_organization\base::has_capability('local/etemplate:view', $context, $userid, true, $department->get_id(), 'DEPARTMENT') ||
+                    \local_organization\base::has_capability('local/etemplate:view', $context, $userid, true, $unit->get_id(), 'UNIT'),
+                'canViewSystemReserved' => \local_organization\base::has_capability('local/etemplate:view_system_reserved', $context, $userid, true, $department->get_id(), 'DEPARTMENT') ||
+                    \local_organization\base::has_capability('local/etemplate:view_system_reserved', $context, $userid, true, $unit->get_id(), 'UNIT'),
+                'unitInfo' => $unitInfo,
+            );
+        }
+        return $permissions;
     }
 }

@@ -13,6 +13,16 @@ $context = context_system::instance();
 $PAGE->set_context($context);
 //define a required capability to be able to access this page
 require_capability('local/etemplate:view', $context);
+
+$errmsg = optional_param('errormsg','',PARAM_TEXT);
+if (!empty($errmsg)){
+    $notification = new \core\notification();
+    $messagetext = get_string('message_' . $errmsg, 'local_etemplate');
+    $errormessage = $notification->error($messagetext, '');
+} else {
+    $errormessage = '';
+}
+
 $page_header = get_string('all_email_templates', 'local_etemplate');
 $emails = new emails();
 $alltemplates = $emails->get_records();
@@ -37,73 +47,13 @@ foreach ($alladvisors as $advisor){
 
 $table->head = ['Unit', 'Name', 'Subject', 'Language', 'Active', 'Time Created', 'Time Modified', 'Actions'];
 foreach ($alltemplates as $template){
-    // reset permissions
-    $candelete = false;
-    $canundelete = false;
-    $canedit = false;
-    $canview = false;
-    $canviewsystem = false;
+    $permissioninfo = \local_etemplate\base::getTemplatePermissions($template->unit, $context, $USER->id);
 
-    //what unit/department does this email belong to?
-    if (is_numeric($template->unit)) {
-        $unit = new unit($template->unit);
-        $unitinfo = $unit->get_name();
-        //unit permission checks
-        if (\local_organization\base::has_capability('local/etemplate:view', $context, $USER->id, true, $template->unit, 'UNIT')){
-            $canview = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:delete', $context, $USER->id, true, $template->unit, 'UNIT')){
-            $candelete = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:undelete', $context, $USER->id, true, $template->unit, 'UNIT')){
-            $canundelete = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:edit', $context, $USER->id, true, $template->unit, 'UNIT')){
-            $canedit = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:view_system_reserved', $context, $USER->id, true, $template->unit, 'UNIT')){
-            $canviewsystem = true;
-        }
-    } else {
-        $explodedUnit = explode("_", $template->unit);
-        if (count($explodedUnit) == 2) {
-            $unit = new unit($explodedUnit[0]);
-            $department = new department($explodedUnit[1]);
-            $unitinfo = "";
-            if ($unit->get_name() != ""){
-                $unitinfo .= $unit->get_name();
-            } else {
-                $unitinfo .= "{missing unit/faculty}";
-            }
-            $unitinfo .= " / ";
-            if ($department->get_name() != ""){
-                $unitinfo .= $department->get_name();
-            } else {
-                $unitinfo .= "{missing department}";
-            }
-        }
-        //department permission checks
-        if (\local_organization\base::has_capability('local/etemplate:view', $context, $USER->id, true, $department->get_id(), 'DEPARTMENT')
-            || \local_organization\base::has_capability('local/etemplate:view', $context, $USER->id, true, $unit->get_id(), 'UNIT')){
-            $canview = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:delete', $context, $USER->id, true, $department->get_id(), 'DEPARTMENT')
-            || \local_organization\base::has_capability('local/etemplate:delete', $context, $USER->id, true, $unit->get_id(), 'UNIT')){
-            $candelete = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:undelete', $context, $USER->id, true, $department->get_id(), 'DEPARTMENT')
-            || \local_organization\base::has_capability('local/etemplate:undelete', $context, $USER->id, true, $unit->get_id(), 'UNIT')){
-            $canundelete = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:edit', $context, $USER->id, true, $department->get_id(), 'DEPARTMENT')
-            || \local_organization\base::has_capability('local/etemplate:edit', $context, $USER->id, true, $unit->get_id(), 'UNIT')){
-            $canedit = true;
-        }
-        if (\local_organization\base::has_capability('local/etemplate:view_system_reserved', $context, $USER->id, true, $department->get_id(), 'DEPARTMENT')
-            || \local_organization\base::has_capability('local/etemplate:view_system_reserved', $context, $USER->id, true, $unit->get_id(), 'UNIT')){
-            $canviewsystem = true;
-        }
-    }
+    $candelete = $permissioninfo['canDelete'];
+    $canundelete = $permissioninfo['canUndelete'];
+    $canedit = $permissioninfo['canEdit'];
+    $canview = $permissioninfo['canView'];
+    $canviewsystem = $permissioninfo['canViewSystemReserved'];
     //skip checks
     if (is_siteadmin($USER->id)){
         //let 'em see all the things
@@ -130,7 +80,7 @@ foreach ($alltemplates as $template){
     }
     if ($candelete && $template->deleted == 0){
         $deleteinfo = new stdClass();
-        $deleteinfo->unit = $unitinfo;
+        $deleteinfo->unit = $permissioninfo['unitInfo'];
         $deleteinfo->name = $template->name;
         $deletebutton = $OUTPUT->single_button('#', get_string('delete'), 'get', [
             'data-modal' => 'confirmation',
@@ -141,7 +91,7 @@ foreach ($alltemplates as $template){
         ]);
     } elseif ($canundelete && $template->deleted == 1){
         $deleteinfo = new stdClass();
-        $deleteinfo->unit = $unitinfo;
+        $deleteinfo->unit = $permissioninfo['unitInfo'];
         $deleteinfo->name = $template->name;
         $deletebutton = $OUTPUT->single_button('#', get_string('undelete', 'local_etemplate'), 'get', [
             'data-modal' => 'confirmation',
@@ -160,7 +110,7 @@ foreach ($alltemplates as $template){
     if ($template->deleted == 1) {
         $row->attributes['class'] = 'disabled';
     }
-    $row->cells = array($unitinfo, $template->name, $template->subject, $template->lang, $template->active, date('m/d/Y H:i', $template->timecreated), date('m/d/Y H:i', $template->timemodified),$actions);
+    $row->cells = array($permissioninfo['unitInfo'], $template->name, $template->subject, $template->lang, $template->active, date('m/d/Y H:i', $template->timecreated), date('m/d/Y H:i', $template->timemodified),$actions);
     $table->data[] = $row;
 }
 $content .= html_writer::table($table);
@@ -188,6 +138,7 @@ echo base::page(
 echo $OUTPUT->header();
 //*** DISPLAY HEADER ***
 //
+echo $errormessage;
 echo $content;
 //**********************
 //*** DISPLAY FOOTER ***
