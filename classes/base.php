@@ -315,6 +315,14 @@ class base
                 'unitInfo' => $unitInfo,
             );
         }
+        if (is_siteadmin($userid)){
+            $permissions['canCreate'] = true;
+            $permissions['canDelete'] = true;
+            $permissions['canEdit'] = true;
+            $permissions['canUndelete'] = true;
+            $permissions['canView'] = true;
+            $permissions['canViewSystemReserved'] = true;
+        }
         return $permissions;
     }
 }

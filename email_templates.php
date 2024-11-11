@@ -55,6 +55,9 @@ foreach ($alltemplates as $template){
     $canview = $permissioninfo['canView'];
     $canviewsystem = $permissioninfo['canViewSystemReserved'];
     //skip checks
+    if ($template->active != 1) {
+        continue;
+    }
     if (is_siteadmin($USER->id)){
         //let 'em see all the things
         $candelete = true;

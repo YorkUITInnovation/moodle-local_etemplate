@@ -15,7 +15,9 @@ class email extends crud
 {
 
     const MESSAGE_TYPE_EMAIL = 0;
+    const MESSAGE_TYPE_EXAM = 2;
     const MESSAGE_TYPE_INTERNAL = 1;
+
 
     /**
      *
@@ -155,7 +157,8 @@ class email extends crud
         $this->message = $result->message ?? '';
         $this->lang = $result->lang ?? '';
         $this->active = $result->active ?? 0;
-        $this->messagetype = $result->messagetype ?? 0;
+        $this->revision = $result->revision ?? 0;
+        $this->messagetype = $result->message_type ?? 0;
         $this->systemreserved = $result->systemreserved ?? 0;
         $this->deleted = $result->deleted ?? 0;
         $this->unit = $result->unit ?? 0;
@@ -236,6 +239,11 @@ class email extends crud
         return $this->active;
     }
 
+    public function get_revision(): int
+    {
+        return $this->revision;
+    }
+
     /**
      * @return messagetype - tinyint (2)
      */
@@ -244,6 +252,28 @@ class email extends crud
         return $this->messagetype;
     }
 
+    public static function get_messagetype_nicename($id = null)
+    {
+        $messageTypes = [
+            email::MESSAGE_TYPE_EMAIL => get_string(
+                'email',
+                'local_etemplate'
+            ),
+            email::MESSAGE_TYPE_EXAM => get_string(
+                'exam',
+                'local_etemplate'
+            ),
+            email::MESSAGE_TYPE_INTERNAL => get_string(
+                'internal',
+                'local_etemplate'
+            )
+        ];
+        if (is_numeric($id)){
+            return $messageTypes[$id];
+        } else {
+            return $messageTypes;
+        }
+    }
     /**
      * @return systemreserved - tinyint (2)
      */
@@ -411,4 +441,90 @@ class email extends crud
     public function get_unit(){
         return $this->unit;
     }
+    public function process_email($courseid = null, $userid = null){
+        global $DB;
+        $baseemail = $this->get_message();
+        //define text replacements
+        $textreplace = array(
+            '[coursename]',
+            '[firstname]',
+            '[teacherfirstname]',
+            '[teacherlastname]',
+            '[defaultgrade]',
+            '[customgrade]'
+        );
+
+        //build replacement info
+        $unique_matches = array();
+        foreach ($textreplace as $key => $value) {
+            if (strpos($baseemail, $value) !== false && !isset($unique_matches[$value])) {
+                // Perform action for each unique match found
+                switch ($key) {
+                    case 0:
+                        // coursename action
+                        if ($courseid === null && $userid === null){
+                            $coursenametext = 'YO/UNIV 1234 - York University and YU (Full Year 0000-0001)';
+                        } else {
+                            $coursenametext = '{replacedcoursename}';
+                        }
+                        $textreplace[$value] = $coursenametext;
+                        break;
+                    case 1:
+                        // firstname action
+                        if ($courseid === null && $userid === null){
+                            $firstnametext = 'August';
+                        } else {
+                            $firstnametext = '{replacedfirstname}';
+                        }
+                        $textreplace[$value] = $firstnametext;
+                        break;
+                    case 2:
+                        // teacherfirstname action
+                        if ($courseid === null && $userid === null) {
+                            $teacherfirstnametext = 'River';
+                        } else {
+                            $teacherfirstnametext = '{replacedteacherfirstname}';
+                        }
+                        $textreplace[$value] = $teacherfirstnametext;
+                        break;
+                    case 3:
+                        // teacherlastname action
+                        if ($courseid === null && $userid === null) {
+                            $teacherlastnametext = 'Song';
+                        } else {
+                            $teacherlastnametext = '{replacedteacherlastname}';
+                        }
+                        $textreplace[$value] = $teacherlastnametext;
+                        break;
+                    case 4:
+                        // defaultgrade action
+                        if ($courseid === null && $userid === null) {
+                            $defaultgradetext = '55';
+                        } else {
+                            $defaultgradetext = '{replaceddefaultgrade}';
+                        }
+                        $textreplace[$value] = $defaultgradetext;
+                        break;
+                    case 5:
+                        // customgrade action
+                        if ($courseid === null && $userid === null) {
+                            $customgradetext = '75';
+                        } else {
+                            $customgradetext = '{replacedcustomgrade}';
+                        }
+                        $textreplace[$value] = $customgradetext;
+                        break;
+                }
+                $unique_matches[$value] = true; // mark as unique match found
+            }
+        }
+        //replace the text with the matched values
+        foreach ($textreplace as $key => $value) {
+            if (isset($unique_matches[$value])) {
+                $baseemail = str_replace($value, $textreplace[$value], $baseemail);
+            }
+        }
+        return $baseemail;
+    }
+
 }

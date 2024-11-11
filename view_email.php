@@ -27,9 +27,9 @@ $content = "";
 //pre-table content
 $content .= "";
 
-$table->head = ['Name', 'Subject', 'Message', 'Language', 'Message Type', 'System Reserved', 'Active', 'Deleted', 'Time Created', 'Time Modified'];
+$table->head = ['Name', 'Subject', 'Message', 'Message Demo', 'Language', 'Message Type', 'System Reserved', 'Active', 'Deleted', 'Time Created', 'Time Modified'];
 $row = new html_table_row();
-$row->cells = array($email->get_name(), $email->get_subject(), $email->get_message(), $email->get_lang(), $email->get_messagetype(), $email->get_systemreserved(), $email->get_active(), $email->get_deleted(), date('m/d/Y H:i', $email->get_timecreated()), date('m/d/Y H:i', $email->get_timemodified()));
+$row->cells = array($email->get_name(), $email->get_subject(), $email->get_message(), $email->process_email(), $email->get_lang(), $email->get_messagetype_nicename($email->get_messagetype()), $email->get_systemreserved(), $email->get_active(), $email->get_deleted(), date('m/d/Y H:i', $email->get_timecreated()), date('m/d/Y H:i', $email->get_timemodified()));
 $table->data[] = $row;
 $content .= html_writer::table($table);
 

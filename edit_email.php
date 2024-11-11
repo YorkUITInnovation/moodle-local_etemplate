@@ -73,7 +73,20 @@ if ($mform->is_cancelled()) {
         $data->id = $EMAIL->insert_record($data);
     } else {
         //update
-        $EMAIL->update_record($data);
+        $data->timemodified = time();
+        $data->usermodified = $USER->id;
+
+        //update old record to set as inactive
+        $prevver = new stdClass();
+        $prevver->id = $data->id;
+        $prevver->active = 0;
+        $DB->update_record($EMAIL->get_table(), $prevver);
+        $tempid = $data->id;
+        unset($data->id);
+        $data->revision = $data->revision + 1;
+        $data->message = $data->messagebodyeditor['text'];
+        $EMAIL->insert_record($data);
+        $data->id = $tempid;
     }
 
     //save editor text
@@ -88,7 +101,6 @@ if ($mform->is_cancelled()) {
         $data->messagebodyeditor['text']
     );
     $data->message = $message_text;
-    $DB->update_record($EMAIL->get_table(), $data);
 
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
 } else {

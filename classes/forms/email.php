@@ -27,16 +27,7 @@ class email_form extends \moodleform
 
         $context = \context_system::instance();
 
-        $messageTypes = [
-            email::MESSAGE_TYPE_EMAIL => get_string(
-                'email',
-                'local_etemplate'
-            ),
-            email::MESSAGE_TYPE_INTERNAL => get_string(
-                'internal',
-                'local_etemplate'
-            )
-        ];
+        $messageTypes = \local_etemplate\email::get_messagetype_nicename();
 
         $units = new units();
         $units = $units->get_records();
@@ -81,11 +72,9 @@ class email_form extends \moodleform
             'hidden',
             'parentid'
         );
-
         $mform->addElement(
             'hidden',
-            'messagetype',
-            email::MESSAGE_TYPE_EMAIL
+            'revision'
         );
         $mform->addElement(
             'header',
@@ -96,6 +85,18 @@ class email_form extends \moodleform
             'text',
             'name',
             get_string('name', 'local_etemplate')
+        );
+
+        $mform->addElement(
+            'select',
+            'message_type',
+            get_string('messagetype', 'local_etemplate'),
+            $messageTypes
+        );
+        $mform->addHelpButton(
+            'message_type',
+            'messagetype',
+            'local_etemplate'
         );
 
         $mform->addElement(
@@ -174,6 +175,10 @@ class email_form extends \moodleform
             PARAM_INT
         );
         $mform->setType(
+            'revision',
+            PARAM_INT
+        );
+        $mform->setType(
             'unit',
             PARAM_TEXT
         );
@@ -194,7 +199,7 @@ class email_form extends \moodleform
             PARAM_TEXT
         );
         $mform->setType(
-            'messagetype',
+            'message_type',
             PARAM_TEXT
         );
         $mform->setType(
@@ -202,13 +207,13 @@ class email_form extends \moodleform
             PARAM_TEXT
         );
 
-        if (!$formdata->parentid) {
+/*        if (!$formdata->parentid) {
             $mform->addRule(
                 'name',
                 get_string('error_name', 'local_etemplate'),
                 'required'
             );
-        }
+        }*/
         $mform->addRule(
             'subject',
             get_string('error_subject', 'local_etemplate'),
