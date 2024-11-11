@@ -268,12 +268,13 @@ class email extends crud
                 'local_etemplate'
             )
         ];
-        if (is_numeric($id)){
+        if (is_numeric($id)) {
             return $messageTypes[$id];
         } else {
             return $messageTypes;
         }
     }
+
     /**
      * @return systemreserved - tinyint (2)
      */
@@ -418,7 +419,8 @@ class email extends crud
         $this->timemodified = $timemodified;
     }
 
-    public function delete_email(int $id){
+    public function delete_email(int $id)
+    {
         global $USER;
         $data = $this->get_record($id);
         $data->deleted = 1;
@@ -426,7 +428,9 @@ class email extends crud
         $data->usermodified = $USER->id;
         $this->update_record($data);
     }
-    public function undelete_email(int $id){
+
+    public function undelete_email(int $id)
+    {
         global $USER;
         $data = $this->get_record($id);
         $data->deleted = 0;
@@ -434,14 +438,19 @@ class email extends crud
         $data->usermodified = $USER->id;
         $this->update_record($data);
     }
+
     public function set_unit(int $unit)
     {
         $this->unit = $unit;
     }
-    public function get_unit(){
+
+    public function get_unit()
+    {
         return $this->unit;
     }
-    public function process_email($courseid = null, $userid = null){
+
+    public function process_email($courseid = null, $userid = null)
+    {
         global $DB;
         $baseemail = $this->get_message();
         //define text replacements
@@ -462,8 +471,16 @@ class email extends crud
                 switch ($key) {
                     case 0:
                         // coursename action
-                        if ($courseid === null && $userid === null){
+                        if ($courseid === null && $userid === null) {
+                            //just display some dummy data
                             $coursenametext = 'YO/UNIV 1234 - York University and YU (Full Year 0000-0001)';
+                        } elseif ((!empty($courseid) && $userid === null) || (!empty($courseid) && !empty($userid))) {
+                            if ($course = $DB->get_record('course', array('id' => $courseid))) {
+                                $coursenametext = $course->fullname;
+                            } else {
+                                //do something else here?
+                                $coursenametext = "{COURSE_NOT_FOUND}";
+                            }
                         } else {
                             $coursenametext = '{replacedcoursename}';
                         }
@@ -471,26 +488,53 @@ class email extends crud
                         break;
                     case 1:
                         // firstname action
-                        if ($courseid === null && $userid === null){
+                        if ($courseid === null && $userid === null) {
+                            //just display some dummy data
                             $firstnametext = 'August';
+                        } elseif (!empty($courseid) && $userid === null) {
+                            //find a random user
                         } else {
-                            $firstnametext = '{replacedfirstname}';
+                            //find a specific user
+                            if ($targetuser = $DB->get_record('user', array('id' => $userid))) {
+                                $firstnametext = $targetuser->firstname;
+                            } else {
+                                //do something else here?
+                                $firstnametext = '{USER_NOT_FOUND}';
+                            }
                         }
                         $textreplace[$value] = $firstnametext;
                         break;
                     case 2:
                         // teacherfirstname action
                         if ($courseid === null && $userid === null) {
+                            //just display some dummy data
                             $teacherfirstnametext = 'River';
+                        } elseif (!empty($courseid)) {
+                            //find a random user
+                            $sql = "SELECT u.firstname FROM {role_assignments} ra LEFT JOIN {user} u ON ra.userid=u.id LEFT JOIN {context} con ON ra.contextid=con.id AND con.contextlevel=50 WHERE ra.roleid = ? and con.instanceid = ?";
+                            if ($instructorinfo = $DB->get_record_sql($sql, array('3', $courseid))) {
+                                $teacherfirstnametext = $instructorinfo->firstname;
+                            } else {
+                                $teacherfirstnametext = '{INSTRUCTOR NOT FOUND}';
+                            }
                         } else {
-                            $teacherfirstnametext = '{replacedteacherfirstname}';
+                            $teacherfirstnametext = '{COURSE_NOT_PROVIDED}';
                         }
                         $textreplace[$value] = $teacherfirstnametext;
                         break;
                     case 3:
                         // teacherlastname action
                         if ($courseid === null && $userid === null) {
+                            //just display some dummy data
                             $teacherlastnametext = 'Song';
+                        } elseif (!empty($courseid)) {
+                            //find a random user
+                            $sql = "SELECT u.lastname FROM {role_assignments} ra LEFT JOIN {user} u ON ra.userid=u.id LEFT JOIN {context} con ON ra.contextid=con.id AND con.contextlevel=50 WHERE ra.roleid = ? and con.instanceid = ?";
+                            if ($instructorinfo = $DB->get_record_sql($sql, array('3', $courseid))) {
+                                $teacherfirstnametext = $instructorinfo->lastname;
+                            } else {
+                                $teacherfirstnametext = '{INSTRUCTOR NOT FOUND}';
+                            }
                         } else {
                             $teacherlastnametext = '{replacedteacherlastname}';
                         }
@@ -499,6 +543,7 @@ class email extends crud
                     case 4:
                         // defaultgrade action
                         if ($courseid === null && $userid === null) {
+                            //just display some dummy data
                             $defaultgradetext = '55';
                         } else {
                             $defaultgradetext = '{replaceddefaultgrade}';
@@ -508,6 +553,7 @@ class email extends crud
                     case 5:
                         // customgrade action
                         if ($courseid === null && $userid === null) {
+                            //just display some dummy data
                             $customgradetext = '75';
                         } else {
                             $customgradetext = '{replacedcustomgrade}';
