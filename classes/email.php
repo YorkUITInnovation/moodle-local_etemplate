@@ -15,9 +15,8 @@ class email extends crud
 {
 
     const MESSAGE_TYPE_EMAIL = 0;
-    const MESSAGE_TYPE_EXAM = 2;
     const MESSAGE_TYPE_INTERNAL = 1;
-
+    const MESSAGE_TYPE_EXAM = 2;
 
     /**
      *
@@ -71,7 +70,7 @@ class email extends crud
      *
      * @var int
      */
-    private $systemreserved;
+    private $system_reserved;
 
     /**
      *
@@ -159,7 +158,7 @@ class email extends crud
         $this->active = $result->active ?? 0;
         $this->revision = $result->revision ?? 0;
         $this->messagetype = $result->message_type ?? 0;
-        $this->systemreserved = $result->systemreserved ?? 0;
+        $this->system_reserved = $result->system_reserved ?? 0;
         $this->deleted = $result->deleted ?? 0;
         $this->unit = $result->unit ?? 0;
         $this->usermodified = $result->usermodified ?? 0;
@@ -276,11 +275,11 @@ class email extends crud
     }
 
     /**
-     * @return systemreserved - tinyint (2)
+     * @return system_reserved - tinyint (2)
      */
-    public function get_systemreserved()
+    public function get_system_reserved()
     {
-        return $this->systemreserved;
+        return $this->system_reserved;
     }
 
     /**
@@ -382,9 +381,9 @@ class email extends crud
     /**
      * @param Type: tinyint (2)
      */
-    public function set_systemreserved($systemreserved)
+    public function set_system_reserved($system_reserved)
     {
-        $this->systemreserved = $systemreserved;
+        $this->system_reserved = $system_reserved;
     }
 
     /**
@@ -453,6 +452,37 @@ class email extends crud
     {
         global $DB;
         $baseemail = $this->get_message();
+
+        $signature = '';
+        //get any faculty/department level signatures
+        if (is_numeric($this->unit)){
+            if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
+                foreach ($facsigs as $sig) {
+                    if ($sig->id == $this->id) {
+                        //don't want to duplicate here...
+                    } else {
+                        $signature .= $sig->message;
+                    }
+
+                }
+            }
+        } else {
+            $explodedUnit = explode("_", $this->unit);
+            if (count($explodedUnit) == 2) {
+                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
+                    foreach ($deptsigs as $sig){
+                        $signature .= $sig->message;
+                    }
+                }
+                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
+                    foreach ($facsigs as $sig){
+                        $signature .= $sig->message;
+                    }
+                }
+            }
+        }
+        $baseemail .= $signature;
+
         //define text replacements
         $textreplace = array(
             '[coursename]',

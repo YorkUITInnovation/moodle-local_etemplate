@@ -25,7 +25,7 @@ if (!empty($errmsg)){
 
 $page_header = get_string('all_email_templates', 'local_etemplate');
 $emails = new emails();
-$alltemplates = $emails->get_records();
+$alltemplates = $emails->get_active_records();
 $units = new units();
 $allunits = $units->get_records();
 $table = new html_table();
@@ -45,19 +45,15 @@ foreach ($alladvisors as $advisor){
     }
 }
 
-$table->head = ['Unit', 'Name', 'Subject', 'Language', 'Active', 'Time Created', 'Time Modified', 'Actions'];
+$table->head = ['Unit', 'Type', 'Name', 'Subject', 'Language', 'Time Created', 'Time Modified', 'Actions'];
 foreach ($alltemplates as $template){
     $permissioninfo = \local_etemplate\base::getTemplatePermissions($template->unit, $context, $USER->id);
-
     $candelete = $permissioninfo['canDelete'];
     $canundelete = $permissioninfo['canUndelete'];
     $canedit = $permissioninfo['canEdit'];
     $canview = $permissioninfo['canView'];
     $canviewsystem = $permissioninfo['canViewSystemReserved'];
     //skip checks
-    if ($template->active != 1) {
-        continue;
-    }
     if (is_siteadmin($USER->id)){
         //let 'em see all the things
         $candelete = true;
@@ -76,12 +72,14 @@ foreach ($alltemplates as $template){
     } else {
         $viewbutton = '';
     }
-    if ($canedit === true){
+    if ($canedit === true && $template->system_reserved == 0){
         $editbutton = $OUTPUT->single_button(new moodle_url('/local/etemplate/edit_email.php', ['id' => $template->id]), get_string('edit'), 'get', ['id' => $template->id]);
     } else {
         $editbutton = '';
     }
-    if ($candelete && $template->deleted == 0){
+    if ($candelete && $template->system_reserved == 1){
+        $deletebutton = '';
+    } elseif ($candelete && $template->deleted == 0){
         $deleteinfo = new stdClass();
         $deleteinfo->unit = $permissioninfo['unitInfo'];
         $deleteinfo->name = $template->name;
@@ -110,10 +108,16 @@ foreach ($alltemplates as $template){
     $actions = $viewbutton . $editbutton . $deletebutton;
 
     $row = new html_table_row();
+
     if ($template->deleted == 1) {
-        $row->attributes['class'] = 'disabled';
+        $row->attributes['class'] = 'disabled deleted';
+    } elseif ($template->active == 0 && $template->deleted == 0) {
+        $row->attributes['class'] = 'disabled deactivated';
+    } elseif ($template->active == 1 && $template->deleted == 0) {
+        $row->attributes['class'] = 'active';
     }
-    $row->cells = array($permissioninfo['unitInfo'], $template->name, $template->subject, $template->lang, $template->active, date('m/d/Y H:i', $template->timecreated), date('m/d/Y H:i', $template->timemodified),$actions);
+
+    $row->cells = array($permissioninfo['unitInfo'], \local_etemplate\email::get_messagetype_nicename($template->message_type), $template->name, $template->subject, $template->lang, date('m/d/Y H:i', $template->timecreated), date('m/d/Y H:i', $template->timemodified),$actions);
     $table->data[] = $row;
 }
 $content .= html_writer::table($table);

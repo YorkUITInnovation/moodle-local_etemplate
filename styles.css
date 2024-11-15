@@ -1,4 +1,12 @@
-table#local_etemplates_email_list > tbody > tr.disabled{
+table#local_etemplates_email_list > tbody > tr.deleted{
   background-color: darkred;
   color: red;
+}
+table#local_etemplates_email_list > tbody > tr.deactivated{
+  background-color: darkgoldenrod;
+  color: white;
+}
+table#local_etemplates_email_list > tbody > tr.active{
+  background-color: darkgreen;
+  color: white;
 }

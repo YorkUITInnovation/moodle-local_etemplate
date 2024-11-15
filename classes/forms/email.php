@@ -146,18 +146,18 @@ class email_form extends \moodleform
         ) {
             $mform->addElement(
                 'selectyesno',
-                'systemreserved',
+                'system_reserved',
                 get_string(
                     'system_reserved',
                     'local_etemplate')
             );
             $mform->addHelpButton(
-                'systemreserved',
+                'system_reserved',
                 'system_reserved',
                 'local_etemplate'
             );
             $mform->setType(
-                'systemreserved',
+                'system_reserved',
                 PARAM_INT
             );
         }

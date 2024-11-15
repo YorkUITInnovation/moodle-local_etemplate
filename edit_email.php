@@ -69,6 +69,20 @@ if ($mform->is_cancelled()) {
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
 } else if ($data = $mform->get_data()) {
     $EMAIL = new email($data->id);
+
+    //save editor text
+    $draftid = file_get_submitted_draft_itemid('messagebodyeditor');
+    $message_text = file_save_draft_area_files(
+        $draftid,
+        $context->id,
+        'local_etemplate',
+        'emailtemplate',
+        $data->id,
+        base::get_editor_options($context),
+        $data->messagebodyeditor['text']
+    );
+    $data->message = $message_text;
+
     if ($data->id == 0) {
         $data->id = $EMAIL->insert_record($data);
     } else {
@@ -88,19 +102,6 @@ if ($mform->is_cancelled()) {
         $EMAIL->insert_record($data);
         $data->id = $tempid;
     }
-
-    //save editor text
-    $draftid = file_get_submitted_draft_itemid('messagebodyeditor');
-    $message_text = file_save_draft_area_files(
-        $draftid,
-        $context->id,
-        'local_etemplate',
-        'emailtemplate',
-        $data->id,
-        base::get_editor_options($context),
-        $data->messagebodyeditor['text']
-    );
-    $data->message = $message_text;
 
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
 } else {

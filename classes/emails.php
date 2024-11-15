@@ -24,7 +24,8 @@ class emails
     public function __construct()
     {
         global $DB;
-        $this->results = $DB->get_records('local_et_email', [], 'name');
+        $this->results = $DB->get_records('local_et_email', [], 'timemodified');
+        $this->activeresults = $DB->get_records_sql("select * from {local_et_email} where id in (select max(id) from {local_et_email} group by name)", []);
     }
 
     /**
@@ -33,6 +34,14 @@ class emails
     public function get_records()
     {
         return $this->results;
+    }
+
+    /**
+     * Get the most recent version of each email template
+     */
+    public function get_active_records()
+    {
+        return $this->activeresults;
     }
 
     /**
