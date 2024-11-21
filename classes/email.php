@@ -448,7 +448,7 @@ class email extends crud
         return $this->unit;
     }
 
-    public function process_email($courseid = null, $userid = null)
+    public function preload_template($courseid = null, $userid = null)
     {
         global $DB;
         $baseemail = $this->get_message();
@@ -602,5 +602,62 @@ class email extends crud
         }
         return $baseemail;
     }
+    public function add_user_info($emailtext, $userid, $params = null)
+    {
+        global $DB;
 
+        //define text replacements
+        $textreplace = array(
+            '[firstname]',
+            '[fullname]',
+            '[usergrade]'
+        );
+
+        //build replacement info
+        $unique_matches = array();
+        foreach ($textreplace as $key => $value) {
+            if (strpos($emailtext, $value) !== false && !isset($unique_matches[$value])) {
+                // Perform action for each unique match found
+                switch ($key) {
+                    case 0:
+                        // firstname action
+                        if ($targetuser = $DB->get_record('user', array('id' => $userid))) {
+                            $firstnametext = $targetuser->firstname;
+                        } else {
+                            //do something else here?
+                            $firstnametext = '{USER_NOT_FOUND}';
+                        }
+                        $textreplace[$value] = $firstnametext;
+                        break;
+                    case 1:
+                        // fullname action
+                        if ($targetuser = $DB->get_record('user', array('id' => $userid))) {
+                            $fullnametext = $targetuser->firstname . " " . $targetuser->lastname;
+                        } else {
+                            //do something else here?
+                            $fullnametext = '{USER_NOT_FOUND}';
+                        }
+                        $textreplace[$value] = $fullnametext;
+                        break;
+                    case 2:
+                        // usergrade action
+                        if (isset($params['usergrade'])) {
+                            $usergradetext = $params['usergrade'];
+                        } else {
+                            $usergradetext = '{GRADE NOT PROVIDED/FOUND}';
+                        }
+                        $textreplace[$value] = $usergradetext;
+                        break;
+                }
+                $unique_matches[$value] = true; // mark as unique match found
+            }
+        }
+        //replace the text with the matched values
+        foreach ($textreplace as $key => $value) {
+            if (isset($unique_matches[$value])) {
+                $emailtext = str_replace($value, $textreplace[$value], $emailtext);
+            }
+        }
+        return $emailtext;
+    }
 }

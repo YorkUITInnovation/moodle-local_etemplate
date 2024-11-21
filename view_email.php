@@ -29,7 +29,7 @@ $content .= "";
 
 $table->head = ['Name', 'Active', 'Subject', 'Message', 'Message Demo', 'Language', 'Message Type', 'System Reserved', 'Deleted', 'Time Created', 'Time Modified'];
 $row = new html_table_row();
-$row->cells = array($email->get_name(), $email->get_active(), $email->get_subject(), $email->get_message(), $email->process_email(), $email->get_lang(), $email->get_messagetype_nicename($email->get_messagetype()), $email->get_system_reserved(), $email->get_deleted(), date('m/d/Y H:i', $email->get_timecreated()), date('m/d/Y H:i', $email->get_timemodified()));
+$row->cells = array($email->get_name(), $email->get_active(), $email->get_subject(), $email->get_message(), $email->preload_template(), $email->get_lang(), $email->get_messagetype_nicename($email->get_messagetype()), $email->get_system_reserved(), $email->get_deleted(), date('m/d/Y H:i', $email->get_timecreated()), date('m/d/Y H:i', $email->get_timemodified()));
 
 $table->data[] = $row;
 $content .= html_writer::table($table);
