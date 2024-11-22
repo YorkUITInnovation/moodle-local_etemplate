@@ -10,6 +10,8 @@ namespace local_etemplate;
 
 use local_etemplate\crud;
 use local_etemplate\base;
+use local_organization\department;
+use local_organization\unit;
 
 class email extends crud
 {
@@ -448,16 +450,20 @@ class email extends crud
         return $this->unit;
     }
 
-    public function preload_template($courseid = null, $userid = null)
+    public function preload_template($courseid = null)
     {
         global $DB;
         $baseemail = $this->get_message();
 
         $signature = '';
         //get any faculty/department level signatures
+        $contactunit = '';
+        $facultyname = '';
         if (is_numeric($this->unit)){
             if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
                 foreach ($facsigs as $sig) {
+                    $unit = new unit($this->unit);
+                    $facultyname = $unit->get_name();
                     if ($sig->id == $this->id) {
                         //don't want to duplicate here...
                     } else {
@@ -470,11 +476,15 @@ class email extends crud
             $explodedUnit = explode("_", $this->unit);
             if (count($explodedUnit) == 2) {
                 if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
+                    $department = new department($explodedUnit[1]);
+                    $contactunit = $department->get_name();
                     foreach ($deptsigs as $sig){
                         $signature .= $sig->message;
                     }
                 }
                 if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
+                    $unit = new unit($explodedUnit[0]);
+                    $facultyname = $unit->get_name();
                     foreach ($facsigs as $sig){
                         $signature .= $sig->message;
                     }
@@ -488,8 +498,8 @@ class email extends crud
             '[coursename]',
             '[teacherfirstname]',
             '[teacherlastname]',
-            '[defaultgrade]',
-            '[customgrade]'
+            '[facultyname]',
+            '[contactunit]'
         );
 
         //build replacement info
@@ -542,9 +552,9 @@ class email extends crud
                             //find a random user
                             $sql = "SELECT u.lastname FROM {role_assignments} ra LEFT JOIN {user} u ON ra.userid=u.id LEFT JOIN {context} con ON ra.contextid=con.id AND con.contextlevel=50 WHERE ra.roleid = ? and con.instanceid = ?";
                             if ($instructorinfo = $DB->get_record_sql($sql, array('3', $courseid))) {
-                                $teacherfirstnametext = $instructorinfo->lastname;
+                                $teacherlastnametext = $instructorinfo->lastname;
                             } else {
-                                $teacherfirstnametext = '{INSTRUCTOR NOT FOUND}';
+                                $teacherlastnametext = '{INSTRUCTOR NOT FOUND}';
                             }
                         } else {
                             $teacherlastnametext = '{replacedteacherlastname}';
@@ -552,24 +562,12 @@ class email extends crud
                         $textreplace[$value] = $teacherlastnametext;
                         break;
                     case 3:
-                        // defaultgrade action
-                        if ($courseid === null && $userid === null) {
-                            //just display some dummy data
-                            $defaultgradetext = '55';
-                        } else {
-                            $defaultgradetext = '{replaceddefaultgrade}';
-                        }
-                        $textreplace[$value] = $defaultgradetext;
+                        //facultyname action
+                        $textreplace[$value] = $facultyname;
                         break;
                     case 4:
-                        // customgrade action
-                        if ($courseid === null && $userid === null) {
-                            //just display some dummy data
-                            $customgradetext = '75';
-                        } else {
-                            $customgradetext = '{replacedcustomgrade}';
-                        }
-                        $textreplace[$value] = $customgradetext;
+                        //contactunit action
+                        $textreplace[$value] = $contactunit;
                         break;
                 }
                 $unique_matches[$value] = true; // mark as unique match found
