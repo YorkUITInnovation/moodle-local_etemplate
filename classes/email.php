@@ -486,7 +486,6 @@ class email extends crud
         //define text replacements
         $textreplace = array(
             '[coursename]',
-            '[firstname]',
             '[teacherfirstname]',
             '[teacherlastname]',
             '[defaultgrade]',
@@ -517,24 +516,6 @@ class email extends crud
                         $textreplace[$value] = $coursenametext;
                         break;
                     case 1:
-                        // firstname action
-                        if ($courseid === null && $userid === null) {
-                            //just display some dummy data
-                            $firstnametext = 'August';
-                        } elseif (!empty($courseid) && $userid === null) {
-                            //find a random user
-                        } else {
-                            //find a specific user
-                            if ($targetuser = $DB->get_record('user', array('id' => $userid))) {
-                                $firstnametext = $targetuser->firstname;
-                            } else {
-                                //do something else here?
-                                $firstnametext = '{USER_NOT_FOUND}';
-                            }
-                        }
-                        $textreplace[$value] = $firstnametext;
-                        break;
-                    case 2:
                         // teacherfirstname action
                         if ($courseid === null && $userid === null) {
                             //just display some dummy data
@@ -552,7 +533,7 @@ class email extends crud
                         }
                         $textreplace[$value] = $teacherfirstnametext;
                         break;
-                    case 3:
+                    case 2:
                         // teacherlastname action
                         if ($courseid === null && $userid === null) {
                             //just display some dummy data
@@ -570,7 +551,7 @@ class email extends crud
                         }
                         $textreplace[$value] = $teacherlastnametext;
                         break;
-                    case 4:
+                    case 3:
                         // defaultgrade action
                         if ($courseid === null && $userid === null) {
                             //just display some dummy data
@@ -580,7 +561,7 @@ class email extends crud
                         }
                         $textreplace[$value] = $defaultgradetext;
                         break;
-                    case 5:
+                    case 4:
                         // customgrade action
                         if ($courseid === null && $userid === null) {
                             //just display some dummy data
@@ -601,63 +582,5 @@ class email extends crud
             }
         }
         return $baseemail;
-    }
-    public function add_user_info($emailtext, $userid, $params = null)
-    {
-        global $DB;
-
-        //define text replacements
-        $textreplace = array(
-            '[firstname]',
-            '[fullname]',
-            '[usergrade]'
-        );
-
-        //build replacement info
-        $unique_matches = array();
-        foreach ($textreplace as $key => $value) {
-            if (strpos($emailtext, $value) !== false && !isset($unique_matches[$value])) {
-                // Perform action for each unique match found
-                switch ($key) {
-                    case 0:
-                        // firstname action
-                        if ($targetuser = $DB->get_record('user', array('id' => $userid))) {
-                            $firstnametext = $targetuser->firstname;
-                        } else {
-                            //do something else here?
-                            $firstnametext = '{USER_NOT_FOUND}';
-                        }
-                        $textreplace[$value] = $firstnametext;
-                        break;
-                    case 1:
-                        // fullname action
-                        if ($targetuser = $DB->get_record('user', array('id' => $userid))) {
-                            $fullnametext = $targetuser->firstname . " " . $targetuser->lastname;
-                        } else {
-                            //do something else here?
-                            $fullnametext = '{USER_NOT_FOUND}';
-                        }
-                        $textreplace[$value] = $fullnametext;
-                        break;
-                    case 2:
-                        // usergrade action
-                        if (isset($params['usergrade'])) {
-                            $usergradetext = $params['usergrade'];
-                        } else {
-                            $usergradetext = '{GRADE NOT PROVIDED/FOUND}';
-                        }
-                        $textreplace[$value] = $usergradetext;
-                        break;
-                }
-                $unique_matches[$value] = true; // mark as unique match found
-            }
-        }
-        //replace the text with the matched values
-        foreach ($textreplace as $key => $value) {
-            if (isset($unique_matches[$value])) {
-                $emailtext = str_replace($value, $textreplace[$value], $emailtext);
-            }
-        }
-        return $emailtext;
     }
 }
