@@ -16,9 +16,10 @@ use local_organization\unit;
 class email extends crud
 {
 
-    const MESSAGE_TYPE_EMAIL = 0;
-    const MESSAGE_TYPE_INTERNAL = 1;
+    const MESSAGE_TYPE_GRADE = 0;
+    const MESSAGE_TYPE_ASSIGNMENT = 1;
     const MESSAGE_TYPE_EXAM = 2;
+    const MESSAGE_TYPE_CATCHALL = 3;
 
     /**
      *
@@ -256,16 +257,20 @@ class email extends crud
     public static function get_messagetype_nicename($id = null)
     {
         $messageTypes = [
-            email::MESSAGE_TYPE_EMAIL => get_string(
-                'email',
+            email::MESSAGE_TYPE_GRADE => get_string(
+                'grade',
+                'local_etemplate'
+            ),
+            email::MESSAGE_TYPE_ASSIGNMENT => get_string(
+                'assignment',
                 'local_etemplate'
             ),
             email::MESSAGE_TYPE_EXAM => get_string(
                 'exam',
                 'local_etemplate'
             ),
-            email::MESSAGE_TYPE_INTERNAL => get_string(
-                'internal',
+            email::MESSAGE_TYPE_CATCHALL => get_string(
+                'catch_all',
                 'local_etemplate'
             )
         ];
@@ -450,48 +455,74 @@ class email extends crud
         return $this->unit;
     }
 
-    public function preload_template($courseid = null)
+    public function preload_template($courseid = null, $student_record, $teacherid)
     {
         global $DB;
+        $basesubject = $this->get_subject();
         $baseemail = $this->get_message();
+
+        $teacher = $DB->get_record('user', array('id' => $teacherid), 'id, firstname,lastname,email');
 
         $signature = '';
         //get any faculty/department level signatures
         $contactunit = '';
         $facultyname = '';
-        if (is_numeric($this->unit)){
-            if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
-                foreach ($facsigs as $sig) {
-                    $unit = new unit($this->unit);
-                    $facultyname = $unit->get_name();
-                    if ($sig->id == $this->id) {
-                        //don't want to duplicate here...
-                    } else {
-                        $signature .= $sig->message;
-                    }
 
-                }
-            }
+        if (is_number($this->unit)) {
+            $faculty = $DB->get_record('local_organization_unit', ['id' => $this->unit]);
+            $facultyname = $faculty->name;
         } else {
             $explodedUnit = explode("_", $this->unit);
             if (count($explodedUnit) == 2) {
-                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
+                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
                     $department = new department($explodedUnit[1]);
                     $contactunit = $department->get_name();
-                    foreach ($deptsigs as $sig){
+                    foreach ($deptsigs as $sig) {
                         $signature .= $sig->message;
                     }
                 }
-                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))){
+                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
                     $unit = new unit($explodedUnit[0]);
                     $facultyname = $unit->get_name();
-                    foreach ($facsigs as $sig){
+                    foreach ($facsigs as $sig) {
                         $signature .= $sig->message;
                     }
                 }
             }
         }
-        $baseemail .= $signature;
+
+//        if (is_numeric($this->unit)) {
+//            if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
+//                foreach ($facsigs as $sig) {
+//                    $unit = new unit($this->unit);
+//                    $facultyname = $unit->get_name();
+//                    if ($sig->id == $this->id) {
+//                        //don't want to duplicate here...
+//                    } else {
+//                        $signature .= $sig->message;
+//                    }
+//
+//                }
+//            }
+//        } else {
+//            $explodedUnit = explode("_", $this->unit);
+//            if (count($explodedUnit) == 2) {
+//                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
+//                    $department = new department($explodedUnit[1]);
+//                    $contactunit = $department->get_name();
+//                    foreach ($deptsigs as $sig) {
+//                        $signature .= $sig->message;
+//                    }
+//                }
+//                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
+//                    $unit = new unit($explodedUnit[0]);
+//                    $facultyname = $unit->get_name();
+//                    foreach ($facsigs as $sig) {
+//                        $signature .= $sig->message;
+//                    }
+//                }
+//            }
+//        }
 
         //define text replacements
         $textreplace = array(
@@ -499,7 +530,8 @@ class email extends crud
             '[teacherfirstname]',
             '[teacherlastname]',
             '[facultyname]',
-            '[contactunit]'
+            '[contactunit]',
+            '[firstname]'
         );
 
         //build replacement info
@@ -510,12 +542,10 @@ class email extends crud
                 switch ($key) {
                     case 0:
                         // coursename action
-                        if ($courseid === null && $userid === null) {
-                            //just display some dummy data
-                            $coursenametext = 'YO/UNIV 1234 - York University and YU (Full Year 0000-0001)';
-                        } elseif ((!empty($courseid) && $userid === null) || (!empty($courseid) && !empty($userid))) {
+                        if ((!empty($courseid) && $userid === null) || (!empty($courseid) && !empty($userid))) {
                             if ($course = $DB->get_record('course', array('id' => $courseid))) {
-                                $coursenametext = $course->fullname;
+                                $basesubject = str_replace('[coursename]', $course->fullname, $basesubject);
+                                $baseemail = str_replace('[coursename]', $course->fullname, $baseemail);
                             } else {
                                 //do something else here?
                                 $coursenametext = "{COURSE_NOT_FOUND}";
@@ -523,36 +553,30 @@ class email extends crud
                         } else {
                             $coursenametext = '{replacedcoursename}';
                         }
-                        $textreplace[$value] = $coursenametext;
+//                        $textreplace[$value] = $coursenametext;
                         break;
                     case 1:
                         // teacherfirstname action
-                        if ($courseid === null && $userid === null) {
-                            //just display some dummy data
-                            $teacherfirstnametext = 'River';
-                        } elseif (!empty($courseid)) {
+                        if (!empty($courseid)) {
                             //find a random user
-                            $sql = "SELECT u.firstname FROM {role_assignments} ra LEFT JOIN {user} u ON ra.userid=u.id LEFT JOIN {context} con ON ra.contextid=con.id AND con.contextlevel=50 WHERE ra.roleid = ? and con.instanceid = ?";
-                            if ($instructorinfo = $DB->get_record_sql($sql, array('3', $courseid))) {
-                                $teacherfirstnametext = $instructorinfo->firstname;
+                            if ($teacher) {
+                                $basesubject = str_replace('[teacherfirstname]', $teacher->firstname, $basesubject);
+                                $baseemail = str_replace('[teacherfirstname]', $teacher->firstname, $baseemail);
                             } else {
                                 $teacherfirstnametext = '{INSTRUCTOR NOT FOUND}';
                             }
                         } else {
                             $teacherfirstnametext = '{COURSE_NOT_PROVIDED}';
                         }
-                        $textreplace[$value] = $teacherfirstnametext;
+//                        $textreplace[$value] = $teacherfirstnametext;
                         break;
                     case 2:
                         // teacherlastname action
-                        if ($courseid === null && $userid === null) {
-                            //just display some dummy data
-                            $teacherlastnametext = 'Song';
-                        } elseif (!empty($courseid)) {
+                        if (!empty($courseid)) {
                             //find a random user
-                            $sql = "SELECT u.lastname FROM {role_assignments} ra LEFT JOIN {user} u ON ra.userid=u.id LEFT JOIN {context} con ON ra.contextid=con.id AND con.contextlevel=50 WHERE ra.roleid = ? and con.instanceid = ?";
-                            if ($instructorinfo = $DB->get_record_sql($sql, array('3', $courseid))) {
-                                $teacherlastnametext = $instructorinfo->lastname;
+                            if ($teacher) {
+                                $basesubject = str_replace('[teacherlastname]', $teacher->lastname, $basesubject);
+                                $baseemail = str_replace('[teacherlastname]', $teacher->lastname, $baseemail);
                             } else {
                                 $teacherlastnametext = '{INSTRUCTOR NOT FOUND}';
                             }
@@ -563,22 +587,33 @@ class email extends crud
                         break;
                     case 3:
                         //facultyname action
-                        $textreplace[$value] = $facultyname;
+                        $basesubject = str_replace('[facultyname]', $facultyname, $basesubject);
+                        $baseemail = str_replace('[facultyname]', $facultyname, $baseemail);
                         break;
                     case 4:
                         //contactunit action
                         $textreplace[$value] = $contactunit;
                         break;
+                    case 5:
+                        //Student first name action
+                        $basesubject = str_replace('[firstname]', $student_record->firstname, $basesubject);
+                        $baseemail = str_replace('[firstname]', $student_record->firstname, $baseemail);
+                        break;
                 }
-                $unique_matches[$value] = true; // mark as unique match found
+//                $unique_matches[$value] = true; // mark as unique match found
             }
         }
         //replace the text with the matched values
-        foreach ($textreplace as $key => $value) {
-            if (isset($unique_matches[$value])) {
-                $baseemail = str_replace($value, $textreplace[$value], $baseemail);
-            }
-        }
-        return $baseemail;
+//        foreach ($textreplace as $key => $value) {
+//            if (isset($unique_matches[$value])) {
+//                $baseemail = str_replace($value, $textreplace[$value], $baseemail);
+//            }
+//        }
+
+        $data = new \stdClass();
+        $data->subject = $basesubject;
+        $data->message = $baseemail;
+
+        return $data;
     }
 }

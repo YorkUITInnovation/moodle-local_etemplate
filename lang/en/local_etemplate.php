@@ -2,6 +2,8 @@
 $string['active'] = 'Active';
 $string['add_email_template'] = 'Add email template';
 $string['all_email_templates'] = 'All email templates';
+$string['assignment'] = 'Assignment';
+$string['catch_all'] = 'Catch All';
 $string['confirm_delete_email'] = 'Are you sure you want to delete email template: {$a->name}, from unit: {$a->unit}?';
 $string['confirm_undelete_email'] = 'Are you sure you want to undelete email template: {$a->name}, from unit: {$a->unit}?';
 $string['edit_email_template'] = 'Edit email template';
@@ -13,6 +15,7 @@ $string['error_message_body'] = 'Message body is required';
 $string['error_active'] = 'Active is required';
 $string['error_language'] = 'Language is required';
 $string['exam'] = 'Exam';
+$string['grade'] = 'Grade';
 $string['internal'] = 'Signature';
 $string['lang'] = 'Language';
 $string['message'] = 'Message';
