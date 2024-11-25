@@ -20,6 +20,7 @@ class email extends crud
     const MESSAGE_TYPE_ASSIGNMENT = 1;
     const MESSAGE_TYPE_EXAM = 2;
     const MESSAGE_TYPE_CATCHALL = 3;
+    const MESSAGE_TYPE_SIGNATURE = 4;
 
     /**
      *
@@ -272,6 +273,10 @@ class email extends crud
             email::MESSAGE_TYPE_CATCHALL => get_string(
                 'catch_all',
                 'local_etemplate'
+            ),
+            email::MESSAGE_TYPE_SIGNATURE => get_string(
+                'signature',
+                'local_etemplate'
             )
         ];
         if (is_numeric($id)) {
@@ -471,17 +476,29 @@ class email extends crud
         if (is_number($this->unit)) {
             $faculty = $DB->get_record('local_organization_unit', ['id' => $this->unit]);
             $facultyname = $faculty->name;
+            if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
+                foreach ($facsigs as $sig) {
+                    $unit = new unit($this->unit);
+                    $facultyname = $unit->get_name();
+                    if ($sig->id == $this->id) {
+                        //don't want to duplicate here...
+                    } else {
+                        $signature .= $sig->message;
+                    }
+
+                }
+            }
         } else {
             $explodedUnit = explode("_", $this->unit);
             if (count($explodedUnit) == 2) {
-                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
+                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
                     $department = new department($explodedUnit[1]);
                     $contactunit = $department->get_name();
                     foreach ($deptsigs as $sig) {
                         $signature .= $sig->message;
                     }
                 }
-                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
+                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
                     $unit = new unit($explodedUnit[0]);
                     $facultyname = $unit->get_name();
                     foreach ($facsigs as $sig) {
@@ -491,38 +508,7 @@ class email extends crud
             }
         }
 
-//        if (is_numeric($this->unit)) {
-//            if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
-//                foreach ($facsigs as $sig) {
-//                    $unit = new unit($this->unit);
-//                    $facultyname = $unit->get_name();
-//                    if ($sig->id == $this->id) {
-//                        //don't want to duplicate here...
-//                    } else {
-//                        $signature .= $sig->message;
-//                    }
-//
-//                }
-//            }
-//        } else {
-//            $explodedUnit = explode("_", $this->unit);
-//            if (count($explodedUnit) == 2) {
-//                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
-//                    $department = new department($explodedUnit[1]);
-//                    $contactunit = $department->get_name();
-//                    foreach ($deptsigs as $sig) {
-//                        $signature .= $sig->message;
-//                    }
-//                }
-//                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 1))) {
-//                    $unit = new unit($explodedUnit[0]);
-//                    $facultyname = $unit->get_name();
-//                    foreach ($facsigs as $sig) {
-//                        $signature .= $sig->message;
-//                    }
-//                }
-//            }
-//        }
+        $baseemail .= $signature;
 
         //define text replacements
         $textreplace = array(
@@ -593,6 +579,7 @@ class email extends crud
                     case 4:
                         //contactunit action
                         $textreplace[$value] = $contactunit;
+                        $basesubject = str_replace('[firstname]', $student_record->firstname, $basesubject);
                         break;
                     case 5:
                         //Student first name action
@@ -603,17 +590,12 @@ class email extends crud
 //                $unique_matches[$value] = true; // mark as unique match found
             }
         }
-        //replace the text with the matched values
-//        foreach ($textreplace as $key => $value) {
-//            if (isset($unique_matches[$value])) {
-//                $baseemail = str_replace($value, $textreplace[$value], $baseemail);
-//            }
-//        }
+
 
         $data = new \stdClass();
         $data->subject = $basesubject;
         $data->message = $baseemail;
-
+error_log("returning this data " . print_r($data, TRUE));
         return $data;
     }
 }
