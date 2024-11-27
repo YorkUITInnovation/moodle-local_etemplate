@@ -462,7 +462,7 @@ class email extends crud
 
     public function preload_template($courseid = null, $student_record, $teacherid)
     {
-        global $DB;
+        global $DB, $USER;
         $basesubject = $this->get_subject();
         $baseemail = $this->get_message();
 
@@ -528,18 +528,18 @@ class email extends crud
                 switch ($key) {
                     case 0:
                         // coursename action
-                        if ((!empty($courseid) && $userid === null) || (!empty($courseid) && !empty($userid))) {
+                        if (!empty($courseid)) {
                             if ($course = $DB->get_record('course', array('id' => $courseid))) {
                                 $basesubject = str_replace('[coursename]', $course->fullname, $basesubject);
                                 $baseemail = str_replace('[coursename]', $course->fullname, $baseemail);
                             } else {
                                 //do something else here?
-                                $coursenametext = "{COURSE_NOT_FOUND}";
+                                $basesubject = str_replace('[coursename]', "{COURSE NOT FOUND}", $basesubject);
+                                $baseemail = str_replace('[coursename]', "{COURSE NOT FOUND}", $baseemail);
                             }
                         } else {
                             $coursenametext = '{replacedcoursename}';
                         }
-//                        $textreplace[$value] = $coursenametext;
                         break;
                     case 1:
                         // teacherfirstname action
@@ -554,7 +554,6 @@ class email extends crud
                         } else {
                             $teacherfirstnametext = '{COURSE_NOT_PROVIDED}';
                         }
-//                        $textreplace[$value] = $teacherfirstnametext;
                         break;
                     case 2:
                         // teacherlastname action
@@ -569,7 +568,6 @@ class email extends crud
                         } else {
                             $teacherlastnametext = '{replacedteacherlastname}';
                         }
-                        $textreplace[$value] = $teacherlastnametext;
                         break;
                     case 3:
                         //facultyname action
@@ -578,8 +576,8 @@ class email extends crud
                         break;
                     case 4:
                         //contactunit action
-                        $textreplace[$value] = $contactunit;
-                        $basesubject = str_replace('[firstname]', $student_record->firstname, $basesubject);
+                        $basesubject = str_replace('[contactunit]', $student_record->firstname, $basesubject);
+                        $baseemail = str_replace('[contactunit]', $student_record->firstname, $baseemail);
                         break;
                     case 5:
                         //Student first name action
@@ -587,15 +585,18 @@ class email extends crud
                         $baseemail = str_replace('[firstname]', $student_record->firstname, $baseemail);
                         break;
                 }
-//                $unique_matches[$value] = true; // mark as unique match found
             }
         }
 
-
+        //target_user_id (after triggered from), assignment_id
         $data = new \stdClass();
         $data->subject = $basesubject;
         $data->message = $baseemail;
-error_log("returning this data " . print_r($data, TRUE));
+        $data->templateid = $this->get_id();
+        $data->revision_id = $this->get_revision();
+        $data->triggered_from_user_id = $USER->id;
+        $data->course_id = $courseid;
+        $data->instructor_id = $teacherid;
         return $data;
     }
 }
