@@ -460,7 +460,7 @@ class email extends crud
         return $this->unit;
     }
 
-    public function preload_template($courseid = null, $student_record, $teacherid)
+    public function preload_template($courseid = null, $student_record = null, $teacherid = null)
     {
         global $DB, $USER;
         $basesubject = $this->get_subject();
@@ -597,6 +597,114 @@ class email extends crud
         $data->triggered_from_user_id = $USER->id;
         $data->course_id = $courseid;
         $data->instructor_id = $teacherid;
+        return $data;
+    }
+
+    /**
+     * @param $baseemail
+     * @param $basesubject
+     * @param $courseid
+     * @param $student_record
+     * @param $teacherid
+     * @return \stClass
+     */
+    public static function replace_message_placeholders($baseemail, $basesubject, $courseid, $student_record, $teacherid, $grade = null, $assignment_title = null)
+    {
+        global $DB;
+
+        $teacher = $DB->get_record('user', array('id' => $teacherid), 'id, firstname,lastname,email, idnumber');
+        //define text replacements
+        $textreplace = array(
+            '[coursename]',
+            '[teacherfirstname]',
+            '[teacherlastname]',
+            '[facultyname]',
+            '[contactunit]',
+            '[firstname]',
+            '[assignmenttitle]',
+            '[grade]'
+        );
+
+        //build replacement info
+        $unique_matches = array();
+        foreach ($textreplace as $key => $value) {
+            if (strpos($baseemail, $value) !== false && !isset($unique_matches[$value])) {
+                // Perform action for each unique match found
+                switch ($key) {
+                    case 0:
+                        // coursename action
+                        if (!empty($courseid)) {
+                            if ($course = $DB->get_record('course', array('id' => $courseid))) {
+                                $basesubject = str_replace('[coursename]', $course->fullname, $basesubject);
+                                $baseemail = str_replace('[coursename]', $course->fullname, $baseemail);
+                            } else {
+                                //do something else here?
+                                $basesubject = str_replace('[coursename]', "{COURSE NOT FOUND}", $basesubject);
+                                $baseemail = str_replace('[coursename]', "{COURSE NOT FOUND}", $baseemail);
+                            }
+                        } else {
+                            $coursenametext = '{replacedcoursename}';
+                        }
+                        break;
+                    case 1:
+                        // teacherfirstname action
+                        if (!empty($courseid)) {
+                            //find a random user
+                            if ($teacher) {
+                                $basesubject = str_replace('[teacherfirstname]', $teacher->firstname, $basesubject);
+                                $baseemail = str_replace('[teacherfirstname]', $teacher->firstname, $baseemail);
+                            } else {
+                                $teacherfirstnametext = '{INSTRUCTOR NOT FOUND}';
+                            }
+                        } else {
+                            $teacherfirstnametext = '{COURSE_NOT_PROVIDED}';
+                        }
+                        break;
+                    case 2:
+                        // teacherlastname action
+                        if (!empty($courseid)) {
+                            //find a random user
+                            if ($teacher) {
+                                $basesubject = str_replace('[teacherlastname]', $teacher->lastname, $basesubject);
+                                $baseemail = str_replace('[teacherlastname]', $teacher->lastname, $baseemail);
+                            } else {
+                                $teacherlastnametext = '{INSTRUCTOR NOT FOUND}';
+                            }
+                        } else {
+                            $teacherlastnametext = '{replacedteacherlastname}';
+                        }
+                        break;
+                    case 3:
+                        //facultyname action
+                        $basesubject = str_replace('[facultyname]', $facultyname, $basesubject);
+                        $baseemail = str_replace('[facultyname]', $facultyname, $baseemail);
+                        break;
+                    case 4:
+                        //contactunit action
+                        $basesubject = str_replace('[contactunit]', $student_record->firstname, $basesubject);
+                        $baseemail = str_replace('[contactunit]', $student_record->firstname, $baseemail);
+                        break;
+                    case 5:
+                        //Student first name action
+                        $basesubject = str_replace('[firstname]', $student_record->firstname, $basesubject);
+                        $baseemail = str_replace('[firstname]', $student_record->firstname, $baseemail);
+                        break;
+                    case 6:
+                        //Student first name action
+                        $basesubject = str_replace('[assignmenttitle]', $assignment_title, $basesubject);
+                        $baseemail = str_replace('[assignmenttitle]', $assignment_title, $baseemail);
+                        break;
+                    case 7:
+                        //Student first name action
+                        $basesubject = str_replace('[grade]', $grade, $basesubject);
+                        $baseemail = str_replace('[grade]', $grade, $baseemail);
+                        break;
+                }
+            }
+        }
+        $data = new \stdClass();
+        $data->subject = $basesubject;
+        $data->message = $baseemail;
         return $data;
     }
 }
