@@ -455,9 +455,34 @@ class email extends crud
         $this->unit = $unit;
     }
 
+    /**
+     * Unit in this case is actually department from local_organization_dept table
+     * @return int
+     */
     public function get_unit()
     {
         return $this->unit;
+    }
+
+
+    /**
+     * @return array
+     */
+    public function get_unit_advisors() {
+        global $DB;
+        $departmentid = $this->get_unit();
+        if (!$role = $DB->get_record('role', ['shortname' => 'ea_advisor'], 'id', MUST_EXIST)) {
+            return [];
+        }
+
+        if ($adivors = $DB->get_records('local_organization_advisor', ['user_context' => 'DEPARTMENT', 'instance_id' => $departmentid, 'role_id' => $role->id])) {
+            $unit_advisors = [];
+            foreach ($adivors as $advisor) {
+                $unit_advisors[] = $advisor->user_id;
+            }
+            return $unit_advisors;
+        }
+        return [];
     }
 
     public function preload_template($courseid = null, $student_record = null, $teacherid = null)
