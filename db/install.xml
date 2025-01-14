@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/etemplate/db" VERSION="20240915" COMMENT="XMLDB file for Moodle local/etemplate"
+<XMLDB PATH="local/etemplate/db" VERSION="20250111" COMMENT="XMLDB file for Moodle local/etemplate"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -13,11 +13,15 @@
         <FIELD NAME="message" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="lang" TYPE="char" LENGTH="6" NOTNULL="false" DEFAULT="en" SEQUENCE="false"/>
         <FIELD NAME="unit" TYPE="char" LENGTH="50" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="context" TYPE="char" LENGTH="8" NOTNULL="false" DEFAULT="CAMPUS" SEQUENCE="false" COMMENT="CAMPUS, UNIT, DEPARTMENT"/>
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="message_type" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Email = 0 , Moodle internal = 1"/>
         <FIELD NAME="system_reserved" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="revision" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="deleted" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="faculty" TYPE="char" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="course" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="coursenumber" TYPE="int" LENGTH="8" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

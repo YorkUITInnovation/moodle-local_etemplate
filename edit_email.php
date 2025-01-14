@@ -16,22 +16,32 @@ $id = optional_param(
     PARAM_INT
 );
 
+$view = optional_param(
+    'view',
+    0,
+    PARAM_INT
+);
+
 
 $context = context_system::instance();
 
 if ($id) {
     $EMAIL = new email($id);
+
     $formdata = $EMAIL->get_record();
+    $formdata->view = $view;
+    $formdata->unit = $EMAIL->get_unit() . '_' . $EMAIL->get_context();
 
     $unit = $EMAIL->get_unit();
+    $context = $EMAIL->get_context();
     //check perms
     //grab unit/department info
-    $permissioninfo = \local_etemplate\base::getTemplatePermissions($unit, $context, $USER->id);
-    if ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] === true){
-        redirect(new moodle_url('/local/etemplate/view_email.php', array('id' => $id, 'errormsg' => 'noed')));
-    } elseif ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] !== true){
-        redirect(new moodle_url('/local/etemplate/email_templates.php', array('errormsg' => 'noview')));
-    }
+//    $permissioninfo = \local_etemplate\base::getTemplatePermissions($unit, $context, $USER->id);
+//    if ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] === true){
+//        redirect(new moodle_url('/local/etemplate/view_email.php', array('id' => $id, 'errormsg' => 'noed')));
+//    } elseif ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] !== true){
+//        redirect(new moodle_url('/local/etemplate/email_templates.php', array('errormsg' => 'noview')));
+//    }
 
     $draftid = file_get_submitted_draft_itemid('messagebodyeditor');
     $current_text = file_prepare_draft_area(
@@ -52,6 +62,7 @@ if ($id) {
     $page_header = get_string('edit_email_template', 'local_etemplate');
 } else {
     $formdata = new stdClass();
+    $formdata->view = 0;
     $formdata->id = 0;
     $formdata->parentid = 0;
     $page_header = get_string('add_email_template', 'local_etemplate');

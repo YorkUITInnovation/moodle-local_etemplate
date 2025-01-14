@@ -1,0 +1,17 @@
+{{#show_edit_button}}
+    <a href="{{edit_url}}"
+       class="btn btn-primary btn-sm"
+       title="{{#str}}edit_email_template, local_etemplate{{/str}}"><i class="fa fa-pencil"></i></a>
+{{/show_edit_button}}
+{{#show_delete_button}}
+    <button type="button"
+            class="btn btn-danger btn-sm btn-local-etemplate-delete-email"
+            title="{{#str}}delete_email_template, local_etemplate{{/str}}"
+            data-id="{{id}}"
+            data-name="{{name}}"><i class="fa fa-trash"></i></button>
+{{/show_delete_button}}
+{{#show_view_button}}
+    <a href="{{edit_url}}&view=1"
+       class="btn btn-primary btn-sm"
+       title="{{#str}}view_email_template, local_etemplate{{/str}}"><i class="fa fa-eye"></i></a>
+{{/show_view_button}}
