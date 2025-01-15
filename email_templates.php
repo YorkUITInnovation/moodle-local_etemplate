@@ -1,11 +1,11 @@
 <?php
 require_once('../../config.php');
 include_once('classes/tables/email_table.php');
-//include_once('classes/forms/unit_filter_form.php');
+include_once('classes/forms/email_templates_filter_form.php');
 
 use local_etemplate\base;
 use local_etemplate\tables\email_table;
-//use local_etemplate\unit_filter_form;
+use local_etemplate\forms\email_templates_filter_form;
 
 global $CFG, $OUTPUT, $PAGE, $DB, $USER;
 
@@ -28,23 +28,23 @@ $PAGE->requires->css('/local/etemplate/css/general.css');
 
 $term = optional_param('q', '', PARAM_TEXT);
 
-//$formdata = new stdClass();
-//$formdata->name = $term;
+$formdata = new stdClass();
+$formdata->name = $term;
 //
 //
-//$mform = new unit_filter_form(null, array('formdata' => $formdata));
-//
-//if ($mform->is_cancelled()) {
-//    // Handle form cancel operation, if cancel button is present
-//    redirect($CFG->wwwroot . '/local/organization/units.php?campus_id=' . $campus_id);
-//} else if ($data = $mform->get_data()) { // form is submitted with filter
-//    // Process validated data
-//    $term_filter = $data->q;
-//    $campus_id = $data->campus_id;
-//} else {
-//    // Display the form
-////    $mform->display();
-//}
+$mform = new email_templates_filter_form(null, array('formdata' => $formdata));
+
+if ($mform->is_cancelled()) {
+    // Handle form cancel operation, if cancel button is present
+    redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
+} else if ($data = $mform->get_data()) { // form is submitted with filter
+    // Process validated data
+    $term_filter = $data->q;
+    $campus_id = $data->campus_id;
+} else {
+    // Display the form
+    $mform->display();
+}
 
 $table = new email_table('local_etemplate_email_table');
 $params = array();
@@ -135,7 +135,7 @@ From
 
 $sql = 'e.deleted = 0';
 if (!empty($term_filter)) {
-    $sql .= " AND ((LOWER(name) LIKE '%$term_filter%') OR (LOWER(shortname) LIKE '%$term_filter%'))";
+    $sql .= " AND ((LOWER(e.name) LIKE '%$term_filter%'))";
 }
 // Define the SQL query to fetch data
 $table->set_sql($fields, '{local_et_email} e', $sql);
@@ -151,7 +151,7 @@ base::page(
 
 echo $OUTPUT->header();
 // Set up the table
-//$mform->display();
+$mform->display();
 $table->out(20, true);
 echo $OUTPUT->footer();
 

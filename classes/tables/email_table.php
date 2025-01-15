@@ -68,6 +68,16 @@ class email_table extends \table_sql
         $this->define_headers($headers);
     }
 
+    public function col_department_name($values)
+    {
+        global $DB;
+        if (empty($values->department_name)) {
+            return get_string('course_based_alert', 'local_etemplate');
+        } else {
+            return $values->department_name;
+        }
+    }
+
     /**
      * Function to define the actions column
      *
