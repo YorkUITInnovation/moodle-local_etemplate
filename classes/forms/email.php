@@ -76,7 +76,7 @@ class email_form extends \moodleform
         $major_select = [];
 
         foreach($majors as $major) {
-            $major_select[$major->id . '_DEPARTMENT'] = $major->campus .  ' / ' . $major->unit . ' / ' . $major->department;
+            $major_select[$major->id . '_DEPT'] = $major->campus .  ' / ' . $major->unit . ' / ' . $major->department;
         }
 
         $unit_select = [
