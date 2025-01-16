@@ -33,7 +33,7 @@ if ($id) {
     $formdata->unit = $EMAIL->get_unit() . '_' . $EMAIL->get_context();
 
     $unit = $EMAIL->get_unit();
-    $context = $EMAIL->get_context();
+    $context = context_system::instance();
     //check perms
     //grab unit/department info
 //    $permissioninfo = \local_etemplate\base::getTemplatePermissions($unit, $context, $USER->id);
@@ -72,8 +72,6 @@ $mform = new local_etemplate\email_form(
     null,
     ['formdata' => $formdata]
 );
-//    $PAGE->requires->js_call_amd('', 'init');
-$context = CONTEXT_SYSTEM::instance();
 
 if ($mform->is_cancelled()) {
     //Handle form cancel operation, if cancel button is present on form

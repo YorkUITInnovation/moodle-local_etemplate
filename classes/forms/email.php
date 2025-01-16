@@ -389,12 +389,12 @@ class email_form extends \moodleform
             get_string('error_language', 'local_etemplate'),
             'required'
         );
-        $mform->disabledIf(
-            'name',
-            'parentid',
-            'neq',
-            0
-        );
+//        $mform->disabledIf(
+//            'name',
+//            'parentid',
+//            'neq',
+//            0
+//        );
 
 
         $this->add_action_buttons();

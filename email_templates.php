@@ -22,7 +22,7 @@ if (!$has_capability_view_edit) {
 
 $page_header = get_string('all_email_templates', 'local_etemplate');
 // Load AMD module
-//$PAGE->requires->js_call_amd('local_etemplate/emails', 'init');
+$PAGE->requires->js_call_amd('local_etemplate/email_templates', 'init');
 // Load CSS file
 $PAGE->requires->css('/local/etemplate/css/general.css');
 
