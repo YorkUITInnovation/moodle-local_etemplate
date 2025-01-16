@@ -133,7 +133,7 @@ From
 
 
 
-$sql = 'e.deleted = 0';
+$sql = 'e.deleted = 0 AND active = 1';
 if (!empty($term_filter)) {
     $sql .= " AND ((LOWER(e.name) LIKE '%$term_filter%'))";
 }

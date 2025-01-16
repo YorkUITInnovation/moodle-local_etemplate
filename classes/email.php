@@ -581,47 +581,47 @@ class email extends crud
 
         $teacher = $DB->get_record('user', array('id' => $teacherid), 'id, firstname,lastname,email');
 
-        $signature = '';
-        //get any faculty/department level signatures
-        $contactunit = '';
-        $facultyname = '';
-
-        if (is_number($this->unit)) {
-            $faculty = $DB->get_record('local_organization_unit', ['id' => $this->unit]);
-            $facultyname = $faculty->name;
-            if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
-                foreach ($facsigs as $sig) {
-                    $unit = new unit($this->unit);
-                    $facultyname = $unit->get_name();
-                    if ($sig->id == $this->id) {
-                        //don't want to duplicate here...
-                    } else {
-                        $signature .= $sig->message;
-                    }
-
-                }
-            }
-        } else {
-            $explodedUnit = explode("_", $this->unit);
-            if (count($explodedUnit) == 2) {
-                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
-                    $department = new department($explodedUnit[1]);
-                    $contactunit = $department->get_name();
-                    foreach ($deptsigs as $sig) {
-                        $signature .= $sig->message;
-                    }
-                }
-                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
-                    $unit = new unit($explodedUnit[0]);
-                    $facultyname = $unit->get_name();
-                    foreach ($facsigs as $sig) {
-                        $signature .= $sig->message;
-                    }
-                }
-            }
-        }
-
-        $baseemail .= $signature;
+//        $signature = '';
+//        //get any faculty/department level signatures
+//        $contactunit = '';
+//        $facultyname = '';
+//
+//        if (is_number($this->unit)) {
+//            $faculty = $DB->get_record('local_organization_unit', ['id' => $this->unit]);
+//            $facultyname = $faculty->name;
+//            if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
+//                foreach ($facsigs as $sig) {
+//                    $unit = new unit($this->unit);
+//                    $facultyname = $unit->get_name();
+//                    if ($sig->id == $this->id) {
+//                        //don't want to duplicate here...
+//                    } else {
+//                        $signature .= $sig->message;
+//                    }
+//
+//                }
+//            }
+//        } else {
+//            $explodedUnit = explode("_", $this->unit);
+//            if (count($explodedUnit) == 2) {
+//                if ($deptsigs = $DB->get_records($this->get_table(), array('unit' => $this->unit, 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
+//                    $department = new department($explodedUnit[1]);
+//                    $contactunit = $department->get_name();
+//                    foreach ($deptsigs as $sig) {
+//                        $signature .= $sig->message;
+//                    }
+//                }
+//                if ($facsigs = $DB->get_records($this->get_table(), array('unit' => $explodedUnit[0], 'system_reserved' => 1, 'active' => 1, 'message_type' => 4))) {
+//                    $unit = new unit($explodedUnit[0]);
+//                    $facultyname = $unit->get_name();
+//                    foreach ($facsigs as $sig) {
+//                        $signature .= $sig->message;
+//                    }
+//                }
+//            }
+//        }
+//
+//       $baseemail .= $signature;
 
         //define text replacements
         $textreplace = array(
@@ -689,8 +689,8 @@ class email extends crud
                         break;
                     case 4:
                         //contactunit action
-                        $basesubject = str_replace('[contactunit]', $student_record->firstname, $basesubject);
-                        $baseemail = str_replace('[contactunit]', $student_record->firstname, $baseemail);
+//                        $basesubject = str_replace('[contactunit]', $student_record->firstname, $basesubject);
+//                        $baseemail = str_replace('[contactunit]', $student_record->firstname, $baseemail);
                         break;
                     case 5:
                         //Student first name action
