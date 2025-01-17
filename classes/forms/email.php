@@ -45,8 +45,8 @@ class email_form extends \moodleform
                             ou.shortname,
                             oc.name As campus
                         From
-                            moodle.mdl_local_organization_unit ou Inner Join
-                            moodle.mdl_local_organization_campus oc On oc.id = ou.campus_id
+                            {local_organization_unit} ou Inner Join
+                            {local_organization_campus} oc On oc.id = ou.campus_id
                         Order By
                             campus,
                             ou.name";
@@ -154,7 +154,7 @@ class email_form extends \moodleform
                             ou.name,
                             ou.shortname
                         From
-                            moodle.mdl_local_organization_unit ou
+                            {mdl_local_organization_unit} ou
                         Group By
                             ou.name,
                             ou.shortname
