@@ -261,6 +261,32 @@ class base
         global $CFG;
         return array('subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0);
     }
+
+    /**
+     * Return all roles the user has
+     * @return array
+     * @throws \dml_exception
+     */
+    public static function get_adivsor_roles() {
+        global $DB, $USER;
+        // Get all assigned roles for the user
+        $advisor_roles = $DB->get_records('local_organization_advisor', ['user_id' => $USER->id]);
+
+        $permissions = [];
+        $i = 0;
+        // I need to group all identicle user_context into separate arrays. For example, all DEPARTMENT user_contexts should be in one array
+        // and all UNIT user_contexts should be in another array
+        foreach ($advisor_roles as $role) {
+            $permissions[$role->user_context][$i]['instance_id'] = $role->instance_id;
+            $permissions[$role->user_context][$i]['context'] = $role->user_context;
+            $i++;
+        }
+
+        return $permissions;
+
+    }
+
+
     public static function getTemplatePermissions($unitid, $context, $userid = null) {
         global $USER;
         if (!$userid){

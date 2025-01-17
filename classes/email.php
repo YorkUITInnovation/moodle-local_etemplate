@@ -552,7 +552,6 @@ class email extends crud
         return $this->context;
     }
 
-
     /**
      * @return array
      */

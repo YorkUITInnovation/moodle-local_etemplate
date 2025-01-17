@@ -130,10 +130,28 @@ From
                  odept.id = e.unit)
     End As department_name";
 
-
-
-
 $sql = 'e.deleted = 0 AND active = 1';
+
+$advisor_roles = base::get_adivsor_roles();
+
+$where_clause = '';
+if ($advisor_roles) {
+    $conditions = [];
+
+    foreach ($advisor_roles as $context => $instances) {
+        $instance_ids = array_column($instances, 'instance_id');
+        // Convert DEPARTMENT to DEPT
+        if ($context == 'DEPARTMENT') {
+            $context = 'DEPT';
+        }
+        $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context = '$context')";
+    }
+
+    $where_clause = ' AND (' . implode(' OR ', $conditions) . ')';
+
+    $sql .= $where_clause;
+}
+
 if (!empty($term_filter)) {
     $sql .= " AND ((LOWER(e.name) LIKE '%$term_filter%'))";
 }
