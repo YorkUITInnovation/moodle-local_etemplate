@@ -240,10 +240,10 @@ class email extends crud
     /**
      * @return \stdClass
      */
-    public function get_record(): \stdClass
-    {
-        return parent::get_record();
-    }
+//    public function get_record(): \stdClass
+//    {
+//        return parent::get_record();
+//    }
 
     /**
      * @return id - bigint (18)
