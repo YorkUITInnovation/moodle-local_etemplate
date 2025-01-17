@@ -154,7 +154,7 @@ class email_form extends \moodleform
                             ou.name,
                             ou.shortname
                         From
-                            {mdl_local_organization_unit} ou
+                            {local_organization_unit} ou
                         Group By
                             ou.name,
                             ou.shortname
