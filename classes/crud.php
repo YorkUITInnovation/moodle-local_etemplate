@@ -28,7 +28,7 @@ abstract class crud
      * @global \moodle_database $DB
      *
      */
-    public function get_record(): \stdClass
+    public function get_record(): \stdClass|false
     {
         global $DB;
         $result = $DB->get_record($this->table, ['id' => $this->id]);
