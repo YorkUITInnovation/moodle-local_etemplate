@@ -39,7 +39,7 @@ class email_form extends \moodleform
             $campuses[$campus_id . '_CAMPUS'] = $campus_name;
         }
 
-        $faculties_sql = "Select
+        $faculties_sql = "SELECT
                             ou.id,
                             ou.name,
                             ou.shortname,
@@ -57,7 +57,7 @@ class email_form extends \moodleform
         }
 
 // Get all departments with unit and campus information
-        $major_sql = "Select
+        $major_sql = "SELECT
                         od.id,
                         od.unit_id,
                         od.name As department,
