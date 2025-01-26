@@ -14,6 +14,8 @@ require_login(1, false);
 
 $context = context_system::instance();
 
+$active = optional_param('active', 1, PARAM_INT);
+
 // Capability to view/edit page
 $has_capability_view_edit = has_capability('local/etemplate:view', $PAGE->context, $USER->id);
 if (!$has_capability_view_edit) {
@@ -30,6 +32,7 @@ $term = optional_param('q', '', PARAM_TEXT);
 
 $formdata = new stdClass();
 $formdata->name = $term;
+$formdata->active = $active;
 //
 //
 $mform = new email_templates_filter_form(null, array('formdata' => $formdata));
@@ -130,7 +133,8 @@ From
                  odept.id = e.unit)
     End As department_name";
 
-$sql = 'e.deleted = 0 AND active = 1';
+$sql = 'e.deleted = 0 ';
+$sql .= 'AND e.active = ' . $active;
 
 $advisor_roles = base::get_adivsor_roles();
 

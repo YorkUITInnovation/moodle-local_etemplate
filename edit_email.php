@@ -100,16 +100,16 @@ if ($mform->is_cancelled()) {
         $data->usermodified = $USER->id;
 
         //update old record to set as inactive
-        $prevver = new stdClass();
-        $prevver->id = $data->id;
-        $prevver->active = 0;
-        $DB->update_record($EMAIL->get_table(), $prevver);
-        $tempid = $data->id;
-        unset($data->id);
-        $data->revision = $data->revision + 1;
-        $data->message = $data->messagebodyeditor['text'];
-        $EMAIL->insert_record($data);
-        $data->id = $tempid;
+//        $prevver = new stdClass();
+//        $prevver->id = $data->id;
+//        $prevver->active = 0;
+        $EMAIL->update_record($data);
+//        $tempid = $data->id;
+//        unset($data->id);
+//        $data->revision = $data->revision + 1;
+//        $data->message = $data->messagebodyeditor['text'];
+//        $EMAIL->insert_record($data);
+//        $data->id = $tempid;
     }
 
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');

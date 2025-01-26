@@ -54,7 +54,9 @@ $string['timemodified'] = 'Time Modified';
 $string['type'] = 'Type';
 $string['unit'] = 'Unit';
 $string['unit_help'] = 'Enter the unit this template belongs to, this can be your faculty or department';
+$string['view_active'] = 'View active';
 $string['view_email_template'] = 'View email template';
+$string['view_inactive'] = 'View inactive';
 
 /**
  * Capabilities

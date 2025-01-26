@@ -27,7 +27,7 @@ class email_table extends \table_sql
         parent::__construct($uniqueid);
 
         // Define the columns to be displayed
-        $columns = array('department_name', 'message_type_name', 'name', 'lang', 'timecreated', 'timemodified', 'actions');
+        $columns = array('department_name', 'message_type_name', 'name', 'lang', 'active', 'timecreated', 'timemodified', 'actions');
         $this->define_columns($columns);
 
         // Define the headers for the columns
@@ -36,6 +36,7 @@ class email_table extends \table_sql
             get_string('type', 'local_etemplate'),
             get_string('name', 'local_etemplate'),
             get_string('lang', 'local_etemplate'),
+            get_string('active', 'local_etemplate'),
             get_string('timecreated', 'local_etemplate'),
             get_string('timemodified', 'local_etemplate'),
             get_string('actions', 'local_etemplate'),
@@ -76,6 +77,10 @@ class email_table extends \table_sql
         } else {
             return $values->department_name;
         }
+    }
+
+    public function col_active($values) {
+        return $values->active == 1 ? get_string('yes') : get_string('no');
     }
 
     /**
