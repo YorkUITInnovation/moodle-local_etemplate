@@ -43,20 +43,39 @@ if ($id) {
     $clone_data->usermodified = $USER->id;
     $clone_data->revision = 1; // Reset revision for new template
 
-    // Ensure all critical fields are preserved
-    $clone_data->parent_id = $original_data->parent_id;
+    // CRITICAL FIX: The email class expects unit in combined format "unit_id_context"
+    // Instead of setting unit and context separately, combine them as the class expects
+    $clone_data->unit = $original_data->unit . '_' . $original_data->context;
+
+    // Ensure all other critical fields are preserved
+    $clone_data->parent_id = isset($original_data->parent_id) ? $original_data->parent_id : 0;
     $clone_data->subject = $original_data->subject;
     $clone_data->message = $original_data->message;
-    $clone_data->unit = $original_data->unit;
-    $clone_data->context = $original_data->context;
-    $clone_data->active = $original_data->active;
+    $clone_data->active = isset($original_data->active) ? $original_data->active : 1;
     $clone_data->message_type = $original_data->message_type;
     $clone_data->system_reserved = 0; // New cloned template should not be system reserved
     $clone_data->deleted = 0;
-    $clone_data->faculty = $original_data->faculty;
-    $clone_data->course = $original_data->course;
-    $clone_data->coursenumber = $original_data->coursenumber;
-    $clone_data->lang = $original_data->lang;
+    $clone_data->faculty = isset($original_data->faculty) ? $original_data->faculty : '';
+    $clone_data->course = isset($original_data->course) ? $original_data->course : '';
+    $clone_data->coursenumber = isset($original_data->coursenumber) ? $original_data->coursenumber : '';
+    $clone_data->lang = isset($original_data->lang) ? $original_data->lang : 'en';
+
+    // Debug: Log the values being cloned and verify data integrity
+    error_log("Cloning template - Original unit: " . $original_data->unit . ", context: " . $original_data->context);
+    error_log("Clone data combined unit: " . $clone_data->unit);
+
+    // Verify that the unit and context values are not null or empty
+    if (empty($original_data->unit) || empty($original_data->context)) {
+        error_log("ERROR: Original unit or context is empty - unit: '" . $original_data->unit . "', context: '" . $original_data->context . "'");
+        redirect($CFG->wwwroot . '/local/etemplate/email_templates.php',
+                 'Clone failed: Missing unit or context data in original template',
+                 null,
+                 \core\output\notification::NOTIFY_ERROR);
+    }
+
+    // Additional debug: Check if the original template shows correctly in the list
+    error_log("Original template message_type: " . $original_data->message_type);
+    error_log("Clone template message_type: " . $clone_data->message_type);
 
     // Handle file area cloning for the message content
     $original_context = context_system::instance();
