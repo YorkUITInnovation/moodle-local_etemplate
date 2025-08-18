@@ -59,6 +59,14 @@ $string['view_email_template'] = 'View email template';
 $string['view_inactive'] = 'View inactive';
 
 /**
+ *  Clone email template
+ */
+$string['clone_email_template'] = 'Clone email template';
+$string['email_template_not_found'] = 'Email template not found';
+$string['clone_failed'] = 'Failed to clone email template';
+
+
+/**
  * Capabilities
  */
 $string['etemplate:create'] = 'Create email templates';

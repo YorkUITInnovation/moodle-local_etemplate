@@ -3,6 +3,11 @@
        class="btn btn-primary btn-sm"
        title="{{#str}}edit_email_template, local_etemplate{{/str}}"><i class="fa fa-pencil"></i></a>
 {{/show_edit_button}}
+{{#show_clone_button}}
+    <a href="{{clone_url}}"
+       class="btn btn-success btn-sm"
+       title="{{#str}}clone_email_template, local_etemplate{{/str}}"><i class="fa fa-copy"></i></a>
+{{/show_clone_button}}
 {{#show_delete_button}}
     <button type="button"
             class="btn btn-danger btn-sm btn-local-etemplate-delete-email"

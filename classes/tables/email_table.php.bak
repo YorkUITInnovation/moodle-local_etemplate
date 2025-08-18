@@ -97,10 +97,8 @@ class email_table extends \table_sql
 
         $actions = [
             'edit_url' => $CFG->wwwroot . '/local/etemplate/edit_email.php?id=' . $values->id,
-            'clone_url' => $CFG->wwwroot . '/local/etemplate/clone_email.php?id=' . $values->id,
             'id' => $values->id,
             'user_id' => $USER->id,
-            'name' => $values->name,
             'show_create_button' => $this->show_create_button,
             'show_edit_button' => $this->show_edit_button,
             'show_delete_button' => $this->show_delete_button,
