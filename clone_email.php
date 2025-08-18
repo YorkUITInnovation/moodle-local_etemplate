@@ -43,6 +43,21 @@ if ($id) {
     $clone_data->usermodified = $USER->id;
     $clone_data->revision = 1; // Reset revision for new template
 
+    // Ensure all critical fields are preserved
+    $clone_data->parent_id = $original_data->parent_id;
+    $clone_data->subject = $original_data->subject;
+    $clone_data->message = $original_data->message;
+    $clone_data->unit = $original_data->unit;
+    $clone_data->context = $original_data->context;
+    $clone_data->active = $original_data->active;
+    $clone_data->message_type = $original_data->message_type;
+    $clone_data->system_reserved = 0; // New cloned template should not be system reserved
+    $clone_data->deleted = 0;
+    $clone_data->faculty = $original_data->faculty;
+    $clone_data->course = $original_data->course;
+    $clone_data->coursenumber = $original_data->coursenumber;
+    $clone_data->lang = $original_data->lang;
+
     // Handle file area cloning for the message content
     $original_context = context_system::instance();
 
