@@ -287,6 +287,27 @@ class email_form extends \moodleform
             'eq',
             1
         );
+
+        // Add custom message field under 'Active'
+        $mform->addElement(
+            'selectyesno',
+            'hascustommessage',
+            get_string('hascustommessage', 'local_etemplate')
+        );
+        $mform->setDefault('hascustommessage', 0);
+        $mform->addHelpButton(
+            'hascustommessage',
+            'hascustommessage',
+            'local_etemplate'
+        );
+        $mform->setType('hascustommessage', PARAM_INT);
+        $mform->disabledIf(
+            'hascustommessage',
+            'view',
+            'eq',
+            1
+        );
+
         if (has_capability(
                 'local/etemplate:view_system_reserved',
                 $context
@@ -389,16 +410,24 @@ class email_form extends \moodleform
             get_string('error_language', 'local_etemplate'),
             'required'
         );
-//        $mform->disabledIf(
-//            'name',
-//            'parentid',
-//            'neq',
-//            0
-//        );
-
 
         $this->add_action_buttons();
         $this->set_data($formdata);
     }
 
+    // Add custom validation for custom message placeholder
+    function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        if (!empty($data['hascustommessage'])) {
+            $message = '';
+            if (isset($data['messagebodyeditor']['text'])) {
+                $message = $data['messagebodyeditor']['text'];
+            }
+            if (stripos($message, '[custommessage]') === false) {
+                $errors['messagebodyeditor'] = get_string('error_custommessage_missing', 'local_etemplate');
+            }
+        }
+        return $errors;
+    }
 }

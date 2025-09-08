@@ -720,7 +720,7 @@ class email extends crud
      * @param $teacherid
      * @return \stClass
      */
-    public static function replace_message_placeholders($baseemail, $basesubject, $courseid, $student_record, $teacherid, $grade = null, $assignment_title = null)
+    public static function replace_message_placeholders($baseemail, $basesubject, $courseid, $student_record, $teacherid, $grade = null, $assignment_title = null, $custommessage = null)
     {
         global $DB;
 
@@ -734,7 +734,8 @@ class email extends crud
             '[contactunit]',
             '[firstname]',
             '[assignmenttitle]',
-            '[grade]'
+            '[grade]',
+            '[custommessage]'
         );
 
         //build replacement info
@@ -811,6 +812,11 @@ class email extends crud
                         $basesubject = str_replace('[grade]', $grade, $basesubject);
                         $baseemail = str_replace('[grade]', $grade, $baseemail);
                         break;
+                    case 8:
+                        // custommessage action
+                        $basesubject = str_replace('[custommessage]', $custommessage, $basesubject);
+                        $baseemail = str_replace('[custommessage]', $custommessage, $baseemail);
+                        break;
                 }
             }
         }
@@ -820,3 +826,4 @@ class email extends crud
         return $data;
     }
 }
+

@@ -98,6 +98,20 @@ function xmldb_local_etemplate_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025011101, 'local', 'etemplate');
     }
 
+    if ($oldversion < 2025082801) {
+
+        // Define field hascustommessage to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $field = new xmldb_field('hascustommessage', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'coursenumber');
+
+        // Conditionally launch add field hascustommessage.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Etemplate savepoint reached.
+        upgrade_plugin_savepoint(true, 2025082801, 'local', 'etemplate');
+    }
 
     return true;
 }

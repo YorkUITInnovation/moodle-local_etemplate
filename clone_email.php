@@ -60,6 +60,9 @@ if ($id) {
     $clone_data->coursenumber = isset($original_data->coursenumber) ? $original_data->coursenumber : '';
     $clone_data->lang = isset($original_data->lang) ? $original_data->lang : 'en';
 
+    // Clone hascustommessage field
+    $clone_data->hascustommessage = isset($original_data->hascustommessage) ? $original_data->hascustommessage : 0;
+
     // Debug: Log the values being cloned and verify data integrity
     error_log("Cloning template - Original unit: " . $original_data->unit . ", context: " . $original_data->context);
     error_log("Clone data combined unit: " . $clone_data->unit);

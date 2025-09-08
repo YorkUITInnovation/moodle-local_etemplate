@@ -57,7 +57,8 @@ $string['unit_help'] = 'Enter the unit this template belongs to, this can be you
 $string['view_active'] = 'View active';
 $string['view_email_template'] = 'View email template';
 $string['view_inactive'] = 'View inactive';
-
+$string['hascustommessage'] = 'Custom message';
+$string['error_custommessage_missing'] = 'Custom message is required in the form. Please add [custommessage] to the template..';
 /**
  *  Clone email template
  */

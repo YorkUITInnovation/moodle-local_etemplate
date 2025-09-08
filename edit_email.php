@@ -32,6 +32,9 @@ if ($id) {
     $formdata->view = $view;
     $formdata->unit = $EMAIL->get_unit() . '_' . $EMAIL->get_context();
 
+    // Ensure hascustommessage is set for the form
+    $formdata->hascustommessage = isset($formdata->hascustommessage) ? $formdata->hascustommessage : 0;
+
     $unit = $EMAIL->get_unit();
     $context = context_system::instance();
     //check perms
@@ -65,6 +68,7 @@ if ($id) {
     $formdata->view = 0;
     $formdata->id = 0;
     $formdata->parentid = 0;
+    $formdata->hascustommessage = 0;
     $page_header = get_string('add_email_template', 'local_etemplate');
 }
 
@@ -91,6 +95,9 @@ if ($mform->is_cancelled()) {
         $data->messagebodyeditor['text']
     );
     $data->message = $message_text;
+
+    // Save hascustommessage
+    $data->hascustommessage = isset($data->hascustommessage) ? $data->hascustommessage : 0;
 
     if ($data->id == 0) {
         $data->id = $EMAIL->insert_record($data);
