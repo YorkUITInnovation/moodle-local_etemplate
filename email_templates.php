@@ -142,17 +142,27 @@ $advisor_roles = base::get_adivsor_roles();
 $where_clause = '';
 if ($advisor_roles) {
     $conditions = [];
+    $user_unit_ids = [];
 
     foreach ($advisor_roles as $context => $instances) {
         $instance_ids = array_column($instances, 'instance_id');
+
+        // Collect user's unit IDs for course-based templates
+        if ($context == 'UNIT') {
+            $user_unit_ids = array_merge($user_unit_ids, $instance_ids);
+        }
+
         // Convert DEPARTMENT to DEPT
         if ($context == 'DEPARTMENT') {
             $context = 'DEPT';
         }
-        // Templates for advisor context
+        // Templates for advisor's specific organizational contexts
         $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context = '$context')";
-        // Course-based alert templates for their unit/faculty
-        $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context IS NULL)";
+    }
+
+    // Show course-based alert templates (context IS NULL) for user's faculty/unit
+    if (!empty($user_unit_ids)) {
+        $conditions[] = "(faculty IN (SELECT shortname FROM {local_organization_unit} WHERE id IN (" . implode(',', $user_unit_ids) . ")) AND context IS NULL)";
     }
 
     $where_clause = ' AND (' . implode(' OR ', $conditions) . ')';
