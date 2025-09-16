@@ -149,7 +149,10 @@ if ($advisor_roles) {
         if ($context == 'DEPARTMENT') {
             $context = 'DEPT';
         }
-        $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context = '$context') AND context IS NULL)";
+        // Templates for advisor context
+        $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context = '$context')";
+        // Course-based alert templates for their unit/faculty
+        $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context IS NULL)";
     }
 
     $where_clause = ' AND (' . implode(' OR ', $conditions) . ')';
