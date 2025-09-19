@@ -42,7 +42,7 @@ table#local_etemplates_email_list > tbody > tr.active{
 .early-alert-template-guidelines li {
   margin-bottom: 0.5rem;
   line-height: 1.5;
-  color: var(--bs-body-color));
+  color: var(--bs-body-color);
 }
 
 .early-alert-template-guidelines li:last-child {
