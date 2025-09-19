@@ -76,3 +76,26 @@ $string['etemplate:edit'] = 'Edit email templates';
 $string['etemplate:undelete'] = 'Undelete email templates';
 $string['etemplate:view'] = 'View email templates';
 $string['etemplate:view_system_reserved'] = 'View system reserved templates';
+
+// Email template header
+$string['email_template_header'] = '<div class="early-alert-template-guidelines">
+    <h2>Early Alert Template Guidelines</h2>
+    
+    <p>These institutional templates have been designed to ensure students receiving them:</p>
+    
+    <ul>
+        <li>feel noticed and cared for as individuals</li>
+        <li>understand the impact of NOT taking action (Grades alert)</li>
+        <li>feel supported and empowered to recognize and take the next step</li>
+        <li>are connected to faculty-specific resources that meet their needs.</li>
+    </ul>
+    
+    <p>By standardizing the format and tone and including a singular call to action to "meet with an advisor/success coach", we aim to minimize confusion and ensure all York students receive a consistent message, regardless of their Faculty. This approach helps students experience York\'s care as coordinated and integrated. Changing the messages substantively will also complicate evaluation, and so we ask that template managers adhere to the following guidelines:</p>
+    
+    <ul>
+        <li>Verify that all information listed applies to students that also may be taking courses outside of your Faculty (Example: not all courses have TAs, so this should not appear in a faculty template – consider course-level templates if this is critical information that must be included)</li>
+        <li>Make only minor adjustments where there are faculty-specific details that are not accurately captured</li>
+        <li>Refrain from editing content in square brackets, as this is pulling in data from our LMS</li>
+        <li>Review content regularly for updates and accuracy</li>
+    </ul>
+</div>';

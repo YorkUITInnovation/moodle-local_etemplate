@@ -186,6 +186,7 @@ base::page(
 );
 
 echo $OUTPUT->header();
+echo get_string('email_template_header', 'local_etemplate');
 // Set up the table
 $mform->display();
 $table->out(20, true);
