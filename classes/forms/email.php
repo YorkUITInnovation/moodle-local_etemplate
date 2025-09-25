@@ -223,11 +223,32 @@ class email_form extends \moodleform
             'local_etemplate'
         );
 
-        // Hide id course_group has a value
+        // Hide if course_group has a value in faculty
         $mform->hideIf(
             'unit',
             'faculty',
             'neq',
+            ''
+        );
+
+        // New group for Unit + Course
+        $unit_course_group = [];
+        $unit_course_group[] =& $mform->createElement('text', 'course', '', ['placeholder' => get_string('course', 'local_etemplate')]);
+        $unit_course_group[] =& $mform->createElement('text', 'coursenumber', '', ['placeholder' => get_string('course_number', 'local_etemplate')]);
+        $mform->addGroup($unit_course_group, 'unit_course_group', get_string('course', 'local_etemplate'), ' ', false);
+
+        $mform->disabledIf(
+            'unit_course_group',
+            'view',
+            'eq',
+            1
+        );
+
+        // This group should only appear if a unit is selected.
+        $mform->hideIf(
+            'unit_course_group',
+            'unit',
+            'eq',
             ''
         );
 
