@@ -452,9 +452,6 @@ class email_form extends \moodleform
 
         $this->add_action_buttons();
         $this->set_data($formdata);
-
-        // Add JavaScript for conditional field visibility
-        $PAGE->requires->js_init_call('M.local_etemplate.init_template_type_fields');
     }
 
     // Add custom validation for custom message placeholder
