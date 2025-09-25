@@ -71,6 +71,7 @@ $fields = "e.id,
     e.course,
     e.coursenumber,
     e.hascustommessage,
+    e.template_type,
     e.usermodified,
     FROM_UNIXTIME(e.timecreated, '%Y-%m-%d %H:%i') as timecreated,
     FROM_UNIXTIME(e.timemodified, '%Y-%m-%d %H:%i') as timemodified,
@@ -191,4 +192,3 @@ echo get_string('email_template_header', 'local_etemplate');
 $mform->display();
 $table->out(20, true);
 echo $OUTPUT->footer();
-

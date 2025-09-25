@@ -34,13 +34,13 @@ if ($id) {
         $formdata->unit = $EMAIL->get_unit() . '_' . $EMAIL->get_context();
     }
 
-    // Determine association_type for the form.
-    if (!empty($formdata->campus_id) && !empty($formdata->faculty)) {
-        $formdata->association_type = 'org_unit_course';
-    } else if (!empty($formdata->unit)) {
-        $formdata->association_type = 'org_unit';
+    // Determine template_type for the form.
+    if (!empty($formdata->campus) && (!empty($formdata->faculty) || !empty($formdata->course) || !empty($formdata->coursenumber))) {
+        $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_COURSE; // campus staff  is responsible for a specific course
+    } else if (!empty($formdata->faculty) || !empty($formdata->course) || !empty($formdata->coursenumber)) {
+        $formdata->template_type = email::TEMPLATE_TYPE_FACULTY_COURSE; // case where faculty staff is responsible for specific course
     } else {
-        $formdata->association_type = 'course';
+        $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_FACULTY; // normal case where campus and faculty are responsible  for multiple courses
     }
 
     // Ensure hascustommessage is set for the form
@@ -102,13 +102,26 @@ if ($mform->is_cancelled()) {
     // Save hascustommessage
     $data->hascustommessage = isset($data->hascustommessage) ? $data->hascustommessage : 0;
 
+    $success = false;
     if ($data->id == 0) {
-        $data->id = $EMAIL->insert_record($data);
+        $newid = $EMAIL->insert_record($data);
+        if ($newid) {
+            $data->id = $newid;
+            $success = true;
+        }
     } else {
         //update
         $data->timemodified = time();
         $data->usermodified = $USER->id;
-        $EMAIL->update_record($data);
+        if ($EMAIL->update_record($data)) {
+            $success = true;
+        }
+    }
+
+    if ($success) {
+        \core\notification::success(get_string('savessuccess', 'core'));
+    } else {
+        \core\notification::error(get_string('saveerror', 'core'));
     }
 
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');

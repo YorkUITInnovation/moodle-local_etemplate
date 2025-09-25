@@ -2,6 +2,7 @@
 
 require_once($CFG->libdir . "/externallib.php");
 require_once("$CFG->dirroot/config.php");
+require_once("$CFG->dirroot/local/etemplate/classes/email.php");
 
 
 class local_etemplate_email_ws extends external_api
@@ -21,7 +22,7 @@ class local_etemplate_email_ws extends external_api
 
     /**
      * @param $id
-     * @return true
+     * @return array
      * @throws dml_exception
      * @throws invalid_parameter_exception
      * @throws restricted_context_exception
@@ -40,16 +41,25 @@ class local_etemplate_email_ws extends external_api
         //OPTIONAL but in most web service it should present
         $context = \context_system::instance();
         self::validate_context($context);
-        $data = new \stdClass;
-        $data->id = $id;
-        $data->deleted = 1;
-        $data->active = 0;
-        $data->timemodified = time();
-        $data->usermodified = $USER->id;
-file_put_contents('/var/www/moodledata/temp/log.txt', print_r($data, true));
-        $DB->update_record('local_et_email', $data);
 
-        return true;
+        try {
+            $email = new \local_etemplate\email($id);
+            $email->delete_email();
+            $status = true;
+        } catch (\Exception $e) {
+            $status = false;
+        }
+
+        if ($status) {
+            $message = get_string('deletesuccess', 'core');
+        } else {
+            $message = get_string('deleteerror', 'core');
+        }
+
+        return [
+            'status' => $status,
+            'message' => $message
+        ];
     }
 
     /**
@@ -58,6 +68,9 @@ file_put_contents('/var/www/moodledata/temp/log.txt', print_r($data, true));
      */
     public static function delete_returns()
     {
-        return new external_value(PARAM_INT, 'Boolean');
+        return new external_single_structure([
+            'status' => new external_value(PARAM_BOOL, 'True if the deletion was successful, false otherwise.'),
+            'message' => new external_value(PARAM_TEXT, 'A message describing the outcome of the operation.')
+        ]);
     }
 }

@@ -113,5 +113,34 @@ function xmldb_local_etemplate_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025082801, 'local', 'etemplate');
     }
 
+    if ($oldversion < 2025092500) {
+
+        // Define field hascustommessage to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $field = new xmldb_field('template_type', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, \local_etemplate\email::TEMPLATE_TYPE_CAMPUS_FACULTY, 'hascustommessage');
+
+        // Conditionally launch add field hascustommessage.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Etemplate savepoint reached.
+        upgrade_plugin_savepoint(true, 2025092500, 'local', 'etemplate');
+    }
+    if ($oldversion < 2025092502) {
+
+        // Define field campus to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $field = new xmldb_field('campus', XMLDB_TYPE_CHAR, '2', null, null, null, '', 'deleted');
+
+        // Conditionally launch add field campus_id.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Etemplate savepoint reached.
+        upgrade_plugin_savepoint(true, 2025092502, 'local', 'etemplate');
+    }
+
     return true;
 }

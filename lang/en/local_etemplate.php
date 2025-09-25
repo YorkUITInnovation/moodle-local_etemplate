@@ -44,6 +44,9 @@ $string['reset'] = 'Reset';
 $string['return_to_templates'] = 'Return to email templates list';
 $string['signature'] = 'Unit Signature';
 $string['select'] = 'Select';
+$string['select_campus'] = 'Select Campus';
+$string['select_faculty'] = 'Select Faculty';
+$string['course_code'] = 'Course Code eg. MATH';
 $string['subject'] = 'Subject';
 $string['subject_help'] = 'The subject of the email';
 $string['system_reserved'] = 'System reserved';
@@ -59,6 +62,16 @@ $string['view_email_template'] = 'View email template';
 $string['view_inactive'] = 'View inactive';
 $string['hascustommessage'] = 'Custom message';
 $string['error_custommessage_missing'] = 'Custom message is required in the form. Please add [custommessage] to the template..';
+$string['savessuccess'] = 'Template saved successfully';
+/**
+ * Template types
+ */
+
+$string['template_type'] = 'Template Types';
+$string['campus_faculty_level_template'] = 'Campus and Faculty template                -> Catch all template';
+$string['course_level_template'] = 'Faculty and Course template                                 -> Example Case is where Faculty is responsible';
+$string['campus_course_level_template'] = 'Campus, Faculty and Course template  -> Example Case is where Markham is responsible for the course';
+$string['error_template_type']  = 'Please select a template type';
 /**
  *  Clone email template
  */

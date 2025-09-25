@@ -29,7 +29,7 @@ class email_form extends \moodleform
         $context = \context_system::instance();
 
         $messageTypes = \local_etemplate\email::get_messagetype_nicename();
-        // Prepare all select options which will be devidied by groups
+        // Prepare all select options which will be divided by groups
         $CAMPUSES = new campuses();
         $campuses_array = $CAMPUSES->get_select_array();
         $campuses = [
@@ -90,7 +90,7 @@ class email_form extends \moodleform
         $campus_results = $DB->get_records_sql($campus_sql);
         $campus_only_options = ['' => get_string('select', 'local_etemplate')];
         foreach ($campus_results as $campus) {
-            $campus_only_options[$campus->id] = $campus->name;
+            $campus_only_options[$campus->shortname] = $campus->name;
         }
 
         $langs = get_string_manager()->get_list_of_translations();
@@ -126,10 +126,9 @@ class email_form extends \moodleform
 
         // Add template type radio buttons
         $template_types = [
-            'campus' => get_string('campus_level_template', 'local_etemplate'),
-            'faculty' => get_string('faculty_level_template', 'local_etemplate'),
-            'course' => get_string('course_level_template', 'local_etemplate'),
-            'campus_course' => get_string('campus_course_level_template', 'local_etemplate')
+            email::TEMPLATE_TYPE_CAMPUS_FACULTY => get_string('campus_faculty_level_template', 'local_etemplate', 'Campus and Faculty level template'),
+            email::TEMPLATE_TYPE_FACULTY_COURSE => get_string('course_level_template', 'local_etemplate'),
+            email::TEMPLATE_TYPE_CAMPUS_COURSE => get_string('campus_course_level_template', 'local_etemplate')
         ];
 
         $radio_array = [];
@@ -137,7 +136,7 @@ class email_form extends \moodleform
             $radio_array[] = $mform->createElement('radio', 'template_type', '', $label, $value);
         }
         $mform->addGroup($radio_array, 'template_type_group', get_string('template_type', 'local_etemplate'), '<br/>', false);
-        $mform->setDefault('template_type', 'course');
+        $mform->setDefault('template_type', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
         $mform->addRule('template_type_group', get_string('error_template_type', 'local_etemplate'), 'required');
         $mform->disabledIf('template_type_group', 'view', 'eq', 1);
 
@@ -175,16 +174,6 @@ class email_form extends \moodleform
             'local_etemplate'
         );
 
-        $association_types = [
-            'course' => get_string('course_template', 'local_etemplate'),
-            'org_unit' => get_string('org_unit_template', 'local_etemplate'),
-            'org_unit_course' => get_string('org_unit_course_template', 'local_etemplate'),
-        ];
-        $mform->addElement('select', 'association_type', get_string('template_association', 'local_etemplate'), $association_types);
-        $mform->setDefault('association_type', 'course');
-        $mform->addHelpButton('association_type', 'template_association', 'local_etemplate');
-        $mform->disabledIf('association_type', 'view', 'eq', 1);
-
        $faculties_sql = "Select
                             ou.name,
                             ou.shortname
@@ -205,6 +194,38 @@ class email_form extends \moodleform
             $faculties[$faculty->shortname] = $faculty->name;
         }
 
+        $campus_dropdown_options = ['' => get_string('select', 'local_etemplate')];
+        foreach ($campuses_array as $id => $name) {
+            $campus = new \local_organization\campus($id);
+            $campus_dropdown_options[$campus->get_shortname()] = $name;
+        }
+        $mform->addElement(
+            'select',
+            'campus',
+            get_string('campus', 'local_etemplate'),
+            $campus_dropdown_options,
+            ['placeholder' => get_string('select', 'local_etemplate')]
+        );
+        $mform->hideIf('campus', 'template_type', 'neq', email::TEMPLATE_TYPE_CAMPUS_COURSE);
+        $mform->hideIf('campus', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
+        $mform->disabledIf('campus', 'view', 'eq', 1);
+
+        $course_group=array();
+        $course_group[] =& $mform->createElement('select', 'faculty', '', $faculties , ['placeholder' => get_string('select_faculty', 'local_etemplate')]);
+        $course_group[] =& $mform->createElement('text', 'course', '', ['placeholder' => get_string('course_code', 'local_etemplate')]);
+        $course_group[] =& $mform->createElement('text', 'coursenumber', '', ['placeholder' => get_string('course_number', 'local_etemplate')]);
+
+        $mform->addGroup($course_group, 'course_group', get_string('course', 'local_etemplate'), ' ', false);
+        // disable if view = 1
+        $mform->disabledIf(
+            'course_group',
+            'view',
+            'eq',
+            1
+        );
+
+        $mform->hideIf('course_group', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
+
         // Set type for each element
         $mform->setType(
             'faculty',
@@ -218,7 +239,8 @@ class email_form extends \moodleform
             'coursenumber',
             PARAM_TEXT
         );
-        $mform->setType('campus_id', PARAM_INT);
+        $mform->setType('campus', PARAM_TEXT);
+        $mform->setType('template_type', PARAM_TEXT);
 
         $mform->addElement(
             'selectgroups',
@@ -226,9 +248,22 @@ class email_form extends \moodleform
             get_string('unit', 'local_etemplate'),
 	    $unit_select
         );
-        $mform->disabledIf('unit', 'view', 'eq', 1);
-        $mform->addHelpButton('unit', 'unit', 'local_etemplate');
-        $mform->hideIf('unit', 'association_type', 'neq', 'org_unit');
+        // disable if view = 1
+        $mform->disabledIf(
+            'unit',
+            'view',
+            'eq',
+            1
+        );
+        $mform->addHelpButton(
+            'unit',
+            'unit',
+            'local_etemplate'
+        );
+
+
+        $mform->hideIf('unit', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_COURSE);
+        $mform->hideIf('unit', 'template_type', 'eq', email::TEMPLATE_TYPE_FACULTY_COURSE);
 
         $mform->addElement(
             'text',
@@ -307,41 +342,6 @@ class email_form extends \moodleform
             1
         );
 
-        $mform->addElement(
-            'select',
-            'campus_only',
-            get_string('campus', 'local_etemplate'),
-            $campus_only_options
-        );
-        $mform->hideIf('campus_only', 'template_type', 'neq', 'campus_course');
-        $mform->disabledIf('campus_only', 'view', 'eq', 1);
-
-        $mform->addElement(
-            'text',
-            'faculty',
-            get_string('faculty', 'local_etemplate')
-        );
-        $mform->hideIf('faculty', 'template_type', 'eq', 'campus');
-        $mform->hideIf('faculty', 'template_type', 'eq', 'campus_course');
-        $mform->disabledIf('faculty', 'view', 'eq', 1);
-
-        $mform->addElement(
-            'text',
-            'course',
-            get_string('course', 'local_etemplate')
-        );
-        $mform->hideIf('course', 'template_type', 'eq', 'campus');
-        $mform->hideIf('course', 'template_type', 'eq', 'faculty');
-        $mform->disabledIf('course', 'view', 'eq', 1);
-
-        $mform->addElement(
-            'text',
-            'coursenumber',
-            get_string('coursenumber', 'local_etemplate')
-        );
-        $mform->hideIf('coursenumber', 'template_type', 'eq', 'campus');
-        $mform->hideIf('coursenumber', 'template_type', 'eq', 'faculty');
-        $mform->disabledIf('coursenumber', 'view', 'eq', 1);
 
         if (has_capability(
                 'local/etemplate:view_system_reserved',
@@ -416,10 +416,6 @@ class email_form extends \moodleform
         $mform->setType(
             'context',
             PARAM_TEXT
-        );
-        $mform->setType(
-            'campus_only',
-            PARAM_INT
         );
 
 /*        if (!$formdata->parentid) {
