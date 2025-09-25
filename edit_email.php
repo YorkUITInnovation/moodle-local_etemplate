@@ -34,6 +34,15 @@ if ($id) {
         $formdata->unit = $EMAIL->get_unit() . '_' . $EMAIL->get_context();
     }
 
+    // Determine association_type for the form.
+    if (!empty($formdata->campus_id) && !empty($formdata->faculty)) {
+        $formdata->association_type = 'org_unit_course';
+    } else if (!empty($formdata->unit)) {
+        $formdata->association_type = 'org_unit';
+    } else {
+        $formdata->association_type = 'course';
+    }
+
     // Ensure hascustommessage is set for the form
     $formdata->hascustommessage = isset($formdata->hascustommessage) ? $formdata->hascustommessage : 0;
 
