@@ -30,21 +30,15 @@ if ($id) {
 
     $formdata = $EMAIL->get_record();
     $formdata->view = $view;
-    $formdata->unit = $EMAIL->get_unit() . '_' . $EMAIL->get_context();
+    if ($EMAIL->get_context()) {
+        $formdata->unit = $EMAIL->get_unit() . '_' . $EMAIL->get_context();
+    }
 
     // Ensure hascustommessage is set for the form
     $formdata->hascustommessage = isset($formdata->hascustommessage) ? $formdata->hascustommessage : 0;
 
     $unit = $EMAIL->get_unit();
     $context = context_system::instance();
-    //check perms
-    //grab unit/department info
-//    $permissioninfo = \local_etemplate\base::getTemplatePermissions($unit, $context, $USER->id);
-//    if ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] === true){
-//        redirect(new moodle_url('/local/etemplate/view_email.php', array('id' => $id, 'errormsg' => 'noed')));
-//    } elseif ($permissioninfo['canEdit'] !== true && $permissioninfo['canView'] !== true){
-//        redirect(new moodle_url('/local/etemplate/email_templates.php', array('errormsg' => 'noview')));
-//    }
 
     $draftid = file_get_submitted_draft_itemid('messagebodyeditor');
     $current_text = file_prepare_draft_area(
@@ -105,18 +99,7 @@ if ($mform->is_cancelled()) {
         //update
         $data->timemodified = time();
         $data->usermodified = $USER->id;
-
-        //update old record to set as inactive
-//        $prevver = new stdClass();
-//        $prevver->id = $data->id;
-//        $prevver->active = 0;
         $EMAIL->update_record($data);
-//        $tempid = $data->id;
-//        unset($data->id);
-//        $data->revision = $data->revision + 1;
-//        $data->message = $data->messagebodyeditor['text'];
-//        $EMAIL->insert_record($data);
-//        $data->id = $tempid;
     }
 
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
