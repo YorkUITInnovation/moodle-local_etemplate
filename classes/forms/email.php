@@ -261,7 +261,6 @@ class email_form extends \moodleform
             'local_etemplate'
         );
 
-
         $mform->hideIf('unit', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_COURSE);
         $mform->hideIf('unit', 'template_type', 'eq', email::TEMPLATE_TYPE_FACULTY_COURSE);
 

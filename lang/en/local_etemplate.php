@@ -68,9 +68,9 @@ $string['savessuccess'] = 'Template saved successfully';
  */
 
 $string['template_type'] = 'Template Types';
-$string['campus_faculty_level_template'] = 'Campus and Faculty template                -> Catch all template';
-$string['course_level_template'] = 'Faculty and Course template                                 -> Example Case is where Faculty is responsible';
-$string['campus_course_level_template'] = 'Campus, Faculty and Course template  -> Example Case is where Markham is responsible for the course';
+$string['campus_faculty_level_template'] = 'Campus and Faculty template';
+$string['course_level_template'] = 'Faculty and Course template                                 -> Course level template where Faculty staff responsible';
+$string['campus_course_level_template'] = 'Campus, Faculty and Course template  -> Course level template where Campus staff responsible';
 $string['error_template_type']  = 'Please select a template type';
 /**
  *  Clone email template
