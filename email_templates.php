@@ -144,6 +144,7 @@ $where_clause = '';
 if ($advisor_roles) {
     $conditions = [];
     $user_unit_ids = [];
+    $user_campus_shortnames = [];
 
     foreach ($advisor_roles as $context => $instances) {
         $instance_ids = array_column($instances, 'instance_id');
@@ -151,6 +152,12 @@ if ($advisor_roles) {
         // Collect user's unit IDs for course-based templates
         if ($context == 'UNIT') {
             $user_unit_ids = array_merge($user_unit_ids, $instance_ids);
+        }
+
+        // Collect user's campus shortnames for campus-course templates
+        if ($context == 'CAMPUS') {
+            $campus_shortnames_sql = "SELECT shortname FROM {local_organization_campus} WHERE id IN (" . implode(',', $instance_ids) . ")";
+            $user_campus_shortnames = array_merge($user_campus_shortnames, $DB->get_fieldset_sql($campus_shortnames_sql));
         }
 
         // Convert DEPARTMENT to DEPT
@@ -161,9 +168,14 @@ if ($advisor_roles) {
         $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context = '$context')";
     }
 
-    // Show course-based alert templates (context IS NULL) for user's faculty/unit
+    // Show faculty-course templates (context IS NULL) for user's faculty/unit
     if (!empty($user_unit_ids)) {
-        $conditions[] = "(faculty IN (SELECT shortname FROM {local_organization_unit} WHERE id IN (" . implode(',', $user_unit_ids) . ")) AND context IS NULL)";
+        $conditions[] = "(faculty IN (SELECT shortname FROM {local_organization_unit} WHERE id IN (" . implode(',', $user_unit_ids) . ")) AND template_type = '" . \local_etemplate\email::TEMPLATE_TYPE_FACULTY_COURSE . "')";
+    }
+
+    // Show campus-course templates for user's campus
+    if (!empty($user_campus_shortnames)) {
+        $conditions[] = "(campus IN ('" . implode("','", $user_campus_shortnames) . "') AND template_type = '" . \local_etemplate\email::TEMPLATE_TYPE_CAMPUS_COURSE . "')";
     }
 
     $where_clause = ' AND (' . implode(' OR ', $conditions) . ')';
