@@ -135,7 +135,7 @@ class email_form extends \moodleform
         foreach ($template_types as $value => $label) {
             $radio_array[] = $mform->createElement('radio', 'template_type', '', $label, $value);
         }
-        $mform->addGroup($radio_array, 'template_type_group', get_string('template_type', 'local_etemplate'), '<br/>', false);
+        $mform->addGroup($radio_array, 'template_type_group', get_string('template_type', 'local_etemplate'), ['<br>'], false);
         $mform->setDefault('template_type', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
         $mform->addRule('template_type_group', get_string('error_template_type', 'local_etemplate'), 'required');
         $mform->disabledIf('template_type_group', 'view', 'eq', 1);
@@ -211,9 +211,9 @@ class email_form extends \moodleform
         $mform->disabledIf('campus', 'view', 'eq', 1);
 
         $course_group=array();
-        $course_group[] =& $mform->createElement('select', 'faculty', '', $faculties , ['placeholder' => get_string('select_faculty', 'local_etemplate')]);
-        $course_group[] =& $mform->createElement('text', 'course', '', ['placeholder' => get_string('course_code', 'local_etemplate')]);
-        $course_group[] =& $mform->createElement('text', 'coursenumber', '', ['placeholder' => get_string('course_number', 'local_etemplate')]);
+        $course_group[] = $mform->createElement('select', 'faculty', get_string('faculty', 'local_etemplate'), $faculties , ['placeholder' => get_string('select_faculty', 'local_etemplate')]);
+        $course_group[] = $mform->createElement('text', 'course', get_string('course_code', 'local_etemplate'), ['placeholder' => get_string('course_code', 'local_etemplate')]);
+        $course_group[] = $mform->createElement('text', 'coursenumber', get_string('course_number', 'local_etemplate'), ['placeholder' => get_string('course_number', 'local_etemplate')]);
 
         $mform->addGroup($course_group, 'course_group', get_string('course', 'local_etemplate'), ' ', false);
         // disable if view = 1
