@@ -63,6 +63,7 @@ $string['view_inactive'] = 'View inactive';
 $string['hascustommessage'] = 'Custom message';
 $string['error_custommessage_missing'] = 'Custom message is required in the form. Please add [custommessage] to the template..';
 $string['savessuccess'] = 'Template saved successfully';
+$string['saveerror'] = 'Sorry there was an error saving the template, Please contact your administrator and notify them of the issue.';
 /**
  * Template types
  */
@@ -72,6 +73,7 @@ $string['campus_faculty_level_template'] = 'Campus and/or Faculty template';
 $string['course_level_template'] = 'Faculty and Course template (Course level template)';
 $string['campus_course_level_template'] = 'Campus, Faculty and Course template';
 $string['error_template_type']  = 'Please select a template type';
+$string['template_type_help'] = 'Select the type of template you are creating. <br />';
 /**
  *  Clone email template
  */

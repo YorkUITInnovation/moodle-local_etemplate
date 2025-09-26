@@ -119,9 +119,9 @@ if ($mform->is_cancelled()) {
     }
 
     if ($success) {
-        \core\notification::success(get_string('savessuccess', 'core'));
+        \core\notification::success(get_string('savessuccess', 'local_etemplate'));
     } else {
-        \core\notification::error(get_string('saveerror', 'core'));
+        \core\notification::error(get_string('saveerror', 'local_etemplate'));
     }
 
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');

@@ -139,6 +139,7 @@ class email_form extends \moodleform
         $mform->setDefault('template_type', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
         $mform->addRule('template_type_group', get_string('error_template_type', 'local_etemplate'), 'required');
         $mform->disabledIf('template_type_group', 'view', 'eq', 1);
+        $mform->addHelpButton('template_type_group', 'template_type', 'local_etemplate');
 
         $mform->addElement(
             'text',
