@@ -135,7 +135,7 @@ class email_form extends \moodleform
         foreach ($template_types as $value => $label) {
             $radio_array[] = $mform->createElement('radio', 'template_type', '', $label, $value);
         }
-        $mform->addGroup($radio_array, 'template_type_group', get_string('template_type', 'local_etemplate'), ['<br>'], false);
+        $mform->addGroup($radio_array, 'template_type_group', get_string('template_type', 'local_etemplate'), '<br />', false);
         $mform->setDefault('template_type', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
         $mform->addRule('template_type_group', get_string('error_template_type', 'local_etemplate'), 'required');
         $mform->disabledIf('template_type_group', 'view', 'eq', 1);
