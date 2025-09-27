@@ -39,7 +39,9 @@ if ($id) {
         $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_COURSE; // case where faculty staff is responsible for specific course
 
         // For course templates, we need to reconstruct the 'unit' value from campus/faculty/department.
-        $formdata->unit = base::get_unit_value_from_template_data($formdata);
+        if (empty($formdata->unit)) {
+            $formdata->unit = base::get_unit_value_from_template_data($formdata);
+        }
     } else {
         $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_FACULTY; // normal case where campus and faculty are responsible  for multiple courses
     }

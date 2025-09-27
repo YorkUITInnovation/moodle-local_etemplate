@@ -50,6 +50,14 @@ if ($mform->is_cancelled()) {
 }
 
 $table = new email_table('local_etemplate_email_table');
+
+// If viewing inactive templates, sort by time modified descending.
+if ($active == 0) {
+    $table->sortable(true, 'timemodified', SORT_DESC);
+} else {
+    $table->sortable(true, 'name', SORT_ASC);
+}
+
 $params = array();
 // Define the SQL query to fetch data
 //retrieve campus id from form data when submit

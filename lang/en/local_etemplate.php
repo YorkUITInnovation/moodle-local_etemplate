@@ -14,6 +14,7 @@ $string['course'] = 'Course';
 $string['course_based_alert'] = 'Course based alert';
 $string['course_number'] = 'Course number';
 $string['delete'] = 'Delete';
+$string['deletesuccess'] = 'Template "{$a}" deleted successfully.';
 $string['delete_email_template'] = 'Delete email template';
 $string['edit_email_template'] = 'Edit email template';
 $string['email'] = 'Email';
@@ -80,8 +81,11 @@ $string['error_section_required'] = 'Section is required.';
  *  Clone email template
  */
 $string['clone_email_template'] = 'Clone email template';
+$string['confirm_clone_email'] = 'Are you sure you want to clone the template "{$a}"? The new template will be created as inactive.';
+$string['clonesuccess'] = 'Template "{$a}" cloned successfully.';
 $string['email_template_not_found'] = 'Email template not found';
 $string['clone_failed'] = 'Failed to clone email template';
+$string['copy_of'] = 'Copy of';
 
 
 /**
