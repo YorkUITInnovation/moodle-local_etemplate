@@ -297,6 +297,8 @@ class email extends crud
             $data->coursenumber = '';
             $data->section = '';
         }
+
+        return $data;
     }
 
     /**
