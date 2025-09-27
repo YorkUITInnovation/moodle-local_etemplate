@@ -351,4 +351,76 @@ class base
         }
         return $permissions;
     }
+
+    public static function get_unit_options() {
+        global $DB;
+
+        // Campuses
+        $campuses_array = $DB->get_records_menu('local_organization_campus', [], 'name', 'id, name');
+        $campuses = ['' => get_string('select', 'local_etemplate')];
+        foreach ($campuses_array as $id => $name) {
+            $campuses[$id . '_CAMPUS'] = $name;
+        }
+
+        // Faculties
+        $faculties_sql = "SELECT ou.id, ou.name, oc.name As campus
+                          FROM {local_organization_unit} ou
+                          JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+                          ORDER BY campus, ou.name";
+        $faculties_results = $DB->get_records_sql($faculties_sql);
+        $faculties = [];
+        foreach ($faculties_results as $faculty) {
+            $faculties[$faculty->id . '_UNIT'] = $faculty->campus . ' / ' . $faculty->name;
+        }
+
+        // Departments
+        $major_sql = "SELECT od.id, od.name AS department, ou.name AS unit, oc.name AS campus
+                      FROM {local_organization_dept} od
+                      JOIN {local_organization_unit} ou ON ou.id = od.unit_id
+                      JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+                      ORDER BY campus, unit, department";
+        $majors = $DB->get_records_sql($major_sql);
+        $major_select = [];
+        foreach ($majors as $major) {
+            $major_select[$major->id . '_DEPT'] = $major->campus . ' / ' . $major->unit . ' / ' . $major->department;
+        }
+
+        return [
+            get_string('campus', 'local_etemplate') => $campuses,
+            get_string('faculty', 'local_etemplate') => $faculties,
+            get_string('major', 'local_etemplate') => $major_select
+        ];
+    }
+
+    public static function get_unit_value_from_template_data($formdata) {
+        global $DB;
+
+        if (!empty($formdata->department)) {
+            $sql = "SELECT d.id FROM {local_organization_dept} d
+                    JOIN {local_organization_unit} u ON u.id = d.unit_id
+                    JOIN {local_organization_campus} c ON c.id = u.campus_id
+                    WHERE d.name = :department
+                      AND u.shortname = :faculty
+                      AND c.shortname = :campus";
+            $unit_id = $DB->get_field_sql($sql, ['department' => $formdata->department, 'faculty' => $formdata->faculty, 'campus' => $formdata->campus]);
+            if ($unit_id) {
+                return $unit_id . '_DEPT';
+            }
+        } else if (!empty($formdata->faculty)) {
+            $sql = "SELECT u.id FROM {local_organization_unit} u
+                    JOIN {local_organization_campus} c ON c.id = u.campus_id
+                    WHERE u.shortname = :faculty
+                      AND c.shortname = :campus";
+            $unit_id = $DB->get_field_sql($sql, ['faculty' => $formdata->faculty, 'campus' => $formdata->campus]);
+            if ($unit_id) {
+                return $unit_id . '_UNIT';
+            }
+        } else if (!empty($formdata->campus)) {
+            $unit_id = $DB->get_field('local_organization_campus', 'id', ['shortname' => $formdata->campus]);
+            if ($unit_id) {
+                return $unit_id . '_CAMPUS';
+            }
+        }
+        return null;
+    }
 }

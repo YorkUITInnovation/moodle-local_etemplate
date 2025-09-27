@@ -246,14 +246,13 @@ class email extends crud
                 $data->unit = $unit_data[0];
                 $data->context = 'CAMPUS';
                 // Get campus information
-                $campus = $DB->record('local_organization_campus', ['id' => $unit_data[0]], '*', MUST_EXIST);
+                $campus = $DB->get_record('local_organization_campus', ['id' => $unit_data[0]], '*', MUST_EXIST);
                 // Clear other type fields
                 $data->campus = $campus->shortname;
                 $data->faculty = '';
+                $data->department = '';
                 break;
             case 'UNIT':
-                $data->unit = $unit_data[0];
-                $data->context = 'UNIT';
                 // Get unit information
             $sql = "Select
                         ou.shortname As faculty,
@@ -267,6 +266,7 @@ class email extends crud
                 // Clear other type fields
                 $data->campus = $unit->campus;
                 $data->faculty = $unit->faculty;
+                $data->department = '';
                 break;
             case 'DEPT':
                 $data->unit = $unit_data[0];
@@ -288,6 +288,12 @@ class email extends crud
                 $data->faculty = $dept->faculty;
                 $data->department = $dept->department;
                 break;
+        }
+
+        if ($data->template_type == self::TEMPLATE_TYPE_CAMPUS_FACULTY) {
+            $data->course = '';
+            $data->coursenumber = '';
+            $data->section = '';
         }
     }
 

@@ -30,60 +30,7 @@ class email_form extends \moodleform
 
         $messageTypes = \local_etemplate\email::get_messagetype_nicename();
         // Prepare all select options which will be divided by groups
-        $CAMPUSES = new campuses();
-        $campuses_array = $CAMPUSES->get_select_array();
-        $campuses = [
-            '' => get_string('select', 'local_etemplate')
-        ];
-        foreach ($campuses_array as $campus_id => $campus_name) {
-            $campuses[$campus_id . '_CAMPUS'] = $campus_name;
-        }
-
-        $faculties_sql = "SELECT
-                            ou.id,
-                            ou.name,
-                            ou.shortname,
-                            oc.name As campus
-                        From
-                            {local_organization_unit} ou Inner Join
-                            {local_organization_campus} oc On oc.id = ou.campus_id
-                        Order By
-                            campus,
-                            ou.name";
-        $faculties_results = $DB->get_records_sql($faculties_sql);
-        $faculties = [];
-        foreach ($faculties_results as $faculty) {
-            $faculties[$faculty->id . '_UNIT'] = $faculty->campus . ' / ' . $faculty->name;
-        }
-
-// Get all departments with unit and campus information
-        $major_sql = "SELECT
-                        od.id,
-                        od.unit_id,
-                        od.name As department,
-                        ou.name As unit,
-                        oc.name As campus
-                    From
-                        {local_organization_dept} od Inner Join
-                        {local_organization_unit} ou On ou.id = od.unit_id Inner Join
-                        {local_organization_campus} oc On oc.id = ou.campus_id
-                    Order By
-                        campus,
-                        unit,
-                        department";
-        $majors = $DB->get_records_sql($major_sql);
-
-        $major_select = [];
-
-        foreach($majors as $major) {
-            $major_select[$major->id . '_DEPT'] = $major->campus .  ' / ' . $major->unit . ' / ' . $major->department;
-        }
-
-        $unit_select = [
-            get_string('campus', 'local_etemplate') => $campuses,
-            get_string('faculty', 'local_etemplate') => $faculties,
-            get_string('major', 'local_etemplate') => $major_select
-        ];
+        $unit_select = base::get_unit_options();
 
         // Get campus dropdown data for campus_only field
         $campus_sql = "SELECT id, name, shortname FROM {local_organization_campus} ORDER BY name";

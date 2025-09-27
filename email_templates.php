@@ -110,6 +110,30 @@ $fields = "e.id,
                  id = e.unit)
     End As organization_id,
      Case
+        When e.template_type = 'campus_course'
+        Then (
+            CASE
+                WHEN e.department IS NOT NULL AND e.department != '' THEN (
+                    SELECT CONCAT(c.name, '/', u.name, '/', d.name, '/Course based alert')
+                    FROM {local_organization_dept} d
+                    JOIN {local_organization_unit} u ON u.id = d.unit_id
+                    JOIN {local_organization_campus} c ON c.id = u.campus_id
+                    WHERE d.name = e.department AND u.shortname = e.faculty AND c.shortname = e.campus
+                )
+                WHEN e.faculty IS NOT NULL AND e.faculty != '' THEN (
+                    SELECT CONCAT(c.name, '/', u.name, '/Course based alert')
+                    FROM {local_organization_unit} u
+                    JOIN {local_organization_campus} c ON c.id = u.campus_id
+                    WHERE u.shortname = e.faculty AND c.shortname = e.campus
+                )
+                WHEN e.campus IS NOT NULL AND e.campus != '' THEN (
+                    SELECT CONCAT(c.name, '/Course based alert')
+                    FROM {local_organization_campus} c
+                    WHERE c.shortname = e.campus
+                )
+                ELSE 'Course based alert'
+            END
+        )
         When e.context = 'CAMPUS'
         Then (Select
                  name
@@ -171,7 +195,7 @@ if ($advisor_roles) {
 
     // Show faculty-course templates (context IS NULL) for user's faculty/unit
     if (!empty($user_unit_ids)) {
-        $conditions[] = "(faculty IN (SELECT shortname FROM {local_organization_unit} WHERE id IN (" . implode(',', $user_unit_ids) . "))";
+        $conditions[] = "(faculty IN (SELECT shortname FROM {local_organization_unit} WHERE id IN (" . implode(',', $user_unit_ids) . ")))";
     }
 
     // Show campus-course templates for user's campus
