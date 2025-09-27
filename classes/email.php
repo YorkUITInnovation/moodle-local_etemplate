@@ -241,6 +241,7 @@ class email extends crud
         global $DB;
         // Unset fields not relevant to the selected template type to ensure data integrity.
         $unit_data = explode('_', $data->unit);
+        print_object($unit_data);
         switch ($unit_data[1]) {
             case 'CAMPUS':
                 $data->unit = $unit_data[0];
