@@ -2,8 +2,8 @@
 /*
  * Author: Admin User
  * Create Date: 3-01-2024
- * License: LGPL 
- * 
+ * License: LGPL
+ *
  */
 
 namespace local_etemplate;
@@ -230,42 +230,94 @@ class email extends crud
      *
      * @param \stdClass $data The data object from the form.
      */
-    private function _prepare_data_for_save(&$data) {
+    private function _prepare_data_for_save(&$data)
+    {
+        global $DB;
         // Unset fields not relevant to the selected template type to ensure data integrity.
-        switch ($data->template_type) {
-            case self::TEMPLATE_TYPE_CAMPUS_FACULTY:
-                if (!empty($data->unit)) {
-                    $unit_data = explode("_", $data->unit);
-                    $data->unit = $unit_data[0];
-                    $data->context = $unit_data[1];
-                } else {
-                    $data->unit = 0;
-                    $data->context = '';
-                }
+        $unit_data = explode('_', $data->unit);
+        switch ($unit_data[1]) {
+            case 'CAMPUS':
+                $data->unit = $unit_data[0];
+                $data->context = 'CAMPUS';
+                // Get campus information
+                $campus = $DB->record('local_organization_campus', ['id' => $unit_data[0]], '*', MUST_EXIST);
                 // Clear other type fields
+                $data->campus = $campus->shortname;
                 $data->faculty = '';
-                $data->course = '';
-                $data->coursenumber = '';
-                $data->campus = '';
                 break;
-
-            case self::TEMPLATE_TYPE_FACULTY_COURSE:
-                // These fields are from the course_group
-                // $data->faculty, $data->course, $data->coursenumber are already set
+            case 'UNIT':
+                $data->unit = $unit_data[0];
+                $data->context = 'UNIT';
+                // Get unit information
+            $sql = "Select
+                        ou.shortname As faculty,
+                        oc.shortname As campus
+                    From
+                        {local_organization_campus} oc Inner Join
+                        {local_organization_unit} ou On ou.campus_id = oc.id
+                    Where
+                        ou.id = ?";
+                $unit = $DB->get_record_sql($sql, [$unit_data[0]]);
                 // Clear other type fields
-                $data->unit = 0;
-                $data->context = '';
-                $data->campus="";
+                $data->campus = $unit->campus;
+                $data->faculty = $unit->faculty;
                 break;
-
-            case self::TEMPLATE_TYPE_CAMPUS_COURSE:
-                // These fields are from the course_group and campus dropdown
-                // $data->campus, $data->faculty, $data->course, $data->coursenumber are already set
+            case 'DEPT':
+                $data->unit = $unit_data[0];
+                $data->context = 'DEPT';
+                // Get department information
+                $sql = "Select
+                            ou.shortname As faculty,
+                            oc.shortname As campus
+                            od.shortname As department
+                        From
+                            {local_organization_campus} oc Inner Join
+                            {local_organization_unit} ou On ou.campus_id = oc.id Inner Join
+                            {local_organization_dept} od On od.unit_id = ou.id
+                        Where
+                            od.id = ?";
+                $dept = $DB->get_record_sql($sql, [$unit_data[0]]);
                 // Clear other type fields
-                $data->unit = 0;
-                $data->context = '';
+                $data->campus = $dept->campus;
+                $data->faculty = $dept->faculty;
+                $data->department = $dept->department;
                 break;
         }
+
+//        switch ($data->template_type) {
+//            case self::TEMPLATE_TYPE_CAMPUS_FACULTY:
+//                if (!empty($data->unit)) {
+//                    $unit_data = explode("_", $data->unit);
+//                    $data->unit = $unit_data[0];
+//                    $data->context = $unit_data[1];
+//                } else {
+//                    $data->unit = 0;
+//                    $data->context = '';
+//                }
+//                // Clear other type fields
+//                $data->faculty = '';
+//                $data->course = '';
+//                $data->coursenumber = '';
+//                $data->campus = '';
+//                break;
+//
+//            case self::TEMPLATE_TYPE_FACULTY_COURSE:
+//                // These fields are from the course_group
+//                // $data->faculty, $data->course, $data->coursenumber are already set
+//                // Clear other type fields
+//                $data->unit = 0;
+//                $data->context = '';
+//                $data->campus="";
+//                break;
+//
+//            case self::TEMPLATE_TYPE_CAMPUS_COURSE:
+//                // These fields are from the course_group and campus dropdown
+//                // $data->campus, $data->faculty, $data->course, $data->coursenumber are already set
+//                // Clear other type fields
+//                $data->unit = 0;
+//                $data->context = '';
+//                break;
+//        }
     }
 
     /**
@@ -612,7 +664,8 @@ class email extends crud
     /**
      * @return array
      */
-    public function get_unit_advisors() {
+    public function get_unit_advisors()
+    {
         global $DB;
         $departmentid = $this->get_unit();
         if (!$role = $DB->get_record('role', ['shortname' => 'ea_advisor'], 'id', MUST_EXIST)) {

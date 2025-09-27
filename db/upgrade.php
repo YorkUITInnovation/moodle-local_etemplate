@@ -142,5 +142,31 @@ function xmldb_local_etemplate_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025092502, 'local', 'etemplate');
     }
 
+    if ($oldversion < 2025092700) {
+
+        // Define field department to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $field = new xmldb_field('department', XMLDB_TYPE_CHAR, '16', null, null, null, null, 'faculty');
+
+        // Conditionally launch add field department.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field section to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $field = new xmldb_field('section', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'coursenumber');
+
+        // Conditionally launch add field section.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+
+        // Etemplate savepoint reached.
+        upgrade_plugin_savepoint(true, 2025092700, 'local', 'etemplate');
+    }
+
+
     return true;
 }
