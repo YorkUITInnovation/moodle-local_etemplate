@@ -276,7 +276,7 @@ class email extends crud
                 // Get department information
                 $sql = "Select
                             ou.shortname As faculty,
-                            oc.shortname As campus
+                            oc.shortname As campus,
                             od.shortname As department
                         From
                             {local_organization_campus} oc Inner Join
