@@ -127,7 +127,6 @@ class email_form extends \moodleform
         // Add template type radio buttons
         $template_types = [
             email::TEMPLATE_TYPE_CAMPUS_FACULTY => get_string('campus_faculty_level_template', 'local_etemplate', 'Campus and Faculty level template'),
-            email::TEMPLATE_TYPE_FACULTY_COURSE => get_string('course_level_template', 'local_etemplate'),
             email::TEMPLATE_TYPE_CAMPUS_COURSE => get_string('campus_course_level_template', 'local_etemplate')
         ];
 
@@ -175,79 +174,11 @@ class email_form extends \moodleform
             'local_etemplate'
         );
 
-       $faculties_sql = "Select
-                            ou.name,
-                            ou.shortname
-                        From
-                            {local_organization_unit} ou
-                        Group By
-                            ou.name,
-                            ou.shortname
-                        Order By
-                            ou.name";
-
-        $faculties_results = $DB->get_records_sql($faculties_sql);
-
-        $faculties = [
-            '' => get_string('select', 'local_etemplate')
-        ];
-        foreach ($faculties_results as $faculty) {
-            $faculties[$faculty->shortname] = $faculty->name;
-        }
-
-        $campus_dropdown_options = ['' => get_string('select', 'local_etemplate')];
-        foreach ($campuses_array as $id => $name) {
-            $campus = new \local_organization\campus($id);
-            $campus_dropdown_options[$campus->get_shortname()] = $name;
-        }
-        $mform->addElement(
-            'select',
-            'campus',
-            get_string('campus', 'local_etemplate'),
-            $campus_dropdown_options,
-            ['placeholder' => get_string('select', 'local_etemplate')]
-        );
-        $mform->hideIf('campus', 'template_type', 'neq', email::TEMPLATE_TYPE_CAMPUS_COURSE);
-        $mform->hideIf('campus', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
-        $mform->disabledIf('campus', 'view', 'eq', 1);
-
-        $course_group=array();
-        $course_group[] = $mform->createElement('select', 'faculty', get_string('faculty', 'local_etemplate'), $faculties , ['placeholder' => get_string('select_faculty', 'local_etemplate')]);
-        $course_group[] = $mform->createElement('text', 'course', get_string('course_code', 'local_etemplate'), ['placeholder' => get_string('course_code', 'local_etemplate')]);
-        $course_group[] = $mform->createElement('text', 'coursenumber', get_string('course_number', 'local_etemplate'), ['placeholder' => get_string('course_number', 'local_etemplate')]);
-
-        $mform->addGroup($course_group, 'course_group', get_string('course', 'local_etemplate'), ' ', false);
-        // disable if view = 1
-        $mform->disabledIf(
-            'course_group',
-            'view',
-            'eq',
-            1
-        );
-
-        $mform->hideIf('course_group', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
-
-        // Set type for each element
-        $mform->setType(
-            'faculty',
-            PARAM_TEXT
-        );
-        $mform->setType(
-            'course',
-            PARAM_TEXT
-        );
-        $mform->setType(
-            'coursenumber',
-            PARAM_TEXT
-        );
-        $mform->setType('campus', PARAM_TEXT);
-        $mform->setType('template_type', PARAM_TEXT);
-
         $mform->addElement(
             'selectgroups',
             'unit',
             get_string('unit', 'local_etemplate'),
-	    $unit_select
+            $unit_select
         );
         // disable if view = 1
         $mform->disabledIf(
@@ -262,8 +193,36 @@ class email_form extends \moodleform
             'local_etemplate'
         );
 
-        $mform->hideIf('unit', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_COURSE);
-        $mform->hideIf('unit', 'template_type', 'eq', email::TEMPLATE_TYPE_FACULTY_COURSE);
+        $course_group=array();
+        $course_group[] = $mform->createElement('text', 'course', get_string('course_code', 'local_etemplate'), ['placeholder' => get_string('course_code', 'local_etemplate')]);
+        $course_group[] = $mform->createElement('text', 'coursenumber', get_string('course_number', 'local_etemplate'), ['placeholder' => get_string('course_number', 'local_etemplate')]);
+        $course_group[] = $mform->createElement('text', 'section', get_string('section', 'local_etemplate'), ['placeholder' => get_string('section', 'local_etemplate')]);
+
+        $mform->addGroup($course_group, 'course_group', get_string('course', 'local_etemplate'), ' ', false);
+        // disable if view = 1
+        $mform->disabledIf(
+            'course_group',
+            'view',
+            'eq',
+            1
+        );
+
+        $mform->hideIf('course_group', 'template_type', 'eq', email::TEMPLATE_TYPE_CAMPUS_FACULTY);
+
+        // Set type for each element
+        $mform->setType(
+            'course',
+            PARAM_TEXT
+        );
+        $mform->setType(
+            'coursenumber',
+            PARAM_TEXT
+        );
+        $mform->setType(
+            'section',
+            PARAM_TEXT
+        );
+        $mform->setType('template_type', PARAM_TEXT);
 
         $mform->addElement(
             'text',
@@ -418,13 +377,6 @@ class email_form extends \moodleform
             PARAM_TEXT
         );
 
-/*        if (!$formdata->parentid) {
-            $mform->addRule(
-                'name',
-                get_string('error_name', 'local_etemplate'),
-                'required'
-            );
-        }*/
         $mform->addRule(
             'subject',
             get_string('error_subject', 'local_etemplate'),
@@ -446,6 +398,12 @@ class email_form extends \moodleform
             'required'
         );
 
+        $mform->addRule(
+            'unit',
+            get_string('error_unit_required', 'local_etemplate'),
+            'required', null, 'client'
+        );
+
         $this->add_action_buttons();
         $this->set_data($formdata);
     }
@@ -453,6 +411,18 @@ class email_form extends \moodleform
     // Add custom validation for custom message placeholder
     function validation($data, $files) {
         $errors = parent::validation($data, $files);
+
+        if ($data['template_type'] == email::TEMPLATE_TYPE_CAMPUS_COURSE) {
+            if (empty(trim($data['course']))) {
+                $errors['course_group[course]'] = get_string('error_course_code_required', 'local_etemplate');
+            }
+            if (empty(trim($data['coursenumber']))) {
+                $errors['course_group[coursenumber]'] = get_string('error_course_number_required', 'local_etemplate');
+            }
+            if (empty(trim($data['section']))) {
+                $errors['course_group[section]'] = get_string('error_section_required', 'local_etemplate');
+            }
+        }
 
         if (!empty($data['hascustommessage'])) {
             $message = '';

@@ -35,10 +35,33 @@ if ($id) {
     }
 
     // Determine template_type for the form.
-    if (!empty($formdata->campus) && (!empty($formdata->faculty) || !empty($formdata->course) || !empty($formdata->coursenumber))) {
-        $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_COURSE; // campus staff  is responsible for a specific course
-    } else if (!empty($formdata->faculty) || !empty($formdata->course) || !empty($formdata->coursenumber)) {
-        $formdata->template_type = email::TEMPLATE_TYPE_FACULTY_COURSE; // case where faculty staff is responsible for specific course
+    if (!empty($formdata->course) || !empty($formdata->coursenumber) || !empty($formdata->section)) {
+        $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_COURSE; // case where faculty staff is responsible for specific course
+
+        // For course templates, we need to reconstruct the 'unit' value from campus/faculty/department.
+        if (!empty($formdata->department)) {
+            $sql = "SELECT d.id FROM {local_organization_dept} d
+                    JOIN {local_organization_unit} u ON u.id = d.unit_id
+                    JOIN {local_organization_campus} c ON c.id = u.campus_id
+                    WHERE d.name = :department AND u.shortname = :faculty AND c.shortname = :campus";
+            $unit_id = $DB->get_field_sql($sql, ['department' => $formdata->department, 'faculty' => $formdata->faculty, 'campus' => $formdata->campus]);
+            if ($unit_id) {
+                $formdata->unit = $unit_id . '_DEPT';
+            }
+        } else if (!empty($formdata->faculty)) {
+            $sql = "SELECT u.id FROM {local_organization_unit} u
+                    JOIN {local_organization_campus} c ON c.id = u.campus_id
+                    WHERE u.shortname = :faculty AND c.shortname = :campus";
+            $unit_id = $DB->get_field_sql($sql, ['faculty' => $formdata->faculty, 'campus' => $formdata->campus]);
+            if ($unit_id) {
+                $formdata->unit = $unit_id . '_UNIT';
+            }
+        } else if (!empty($formdata->campus)) {
+            $unit_id = $DB->get_field('local_organization_campus', 'id', ['shortname' => $formdata->campus]);
+            if ($unit_id) {
+                $formdata->unit = $unit_id . '_CAMPUS';
+            }
+        }
     } else {
         $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_FACULTY; // normal case where campus and faculty are responsible  for multiple courses
     }

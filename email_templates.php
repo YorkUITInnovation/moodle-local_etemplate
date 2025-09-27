@@ -70,6 +70,7 @@ $fields = "e.id,
     e.faculty,
     e.course,
     e.coursenumber,
+    e.section,
     e.hascustommessage,
     e.template_type,
     e.usermodified,
@@ -170,7 +171,7 @@ if ($advisor_roles) {
 
     // Show faculty-course templates (context IS NULL) for user's faculty/unit
     if (!empty($user_unit_ids)) {
-        $conditions[] = "(faculty IN (SELECT shortname FROM {local_organization_unit} WHERE id IN (" . implode(',', $user_unit_ids) . ")) AND template_type = '" . \local_etemplate\email::TEMPLATE_TYPE_FACULTY_COURSE . "')";
+        $conditions[] = "(faculty IN (SELECT shortname FROM {local_organization_unit} WHERE id IN (" . implode(',', $user_unit_ids) . "))";
     }
 
     // Show campus-course templates for user's campus

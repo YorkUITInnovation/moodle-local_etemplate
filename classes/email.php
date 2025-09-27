@@ -17,7 +17,6 @@ class email extends crud
 {
 
     const TEMPLATE_TYPE_CAMPUS_FACULTY = 'campus_faculty';
-    const TEMPLATE_TYPE_FACULTY_COURSE = 'faculty_course';
     const TEMPLATE_TYPE_CAMPUS_COURSE = 'campus_course';
 
     const MESSAGE_TYPE_GRADE = 0;
@@ -163,6 +162,12 @@ class email extends crud
      *
      * @var string
      */
+    private $section;
+
+    /**
+     *
+     * @var string
+     */
     private $campus;
 
     /**
@@ -210,6 +215,7 @@ class email extends crud
         $this->faculty = $result->faculty ?? '';
         $this->course = $result->course ?? '';
         $this->coursenumber = $result->coursenumber ?? '';
+        $this->section = $result->section ?? '';
         $this->usermodified = $result->usermodified ?? 0;
         $this->timecreated = $result->timecreated ?? 0;
         $this->template_type = $result->template_type ?? self::TEMPLATE_TYPE_CAMPUS_FACULTY;
@@ -283,41 +289,6 @@ class email extends crud
                 $data->department = $dept->department;
                 break;
         }
-
-//        switch ($data->template_type) {
-//            case self::TEMPLATE_TYPE_CAMPUS_FACULTY:
-//                if (!empty($data->unit)) {
-//                    $unit_data = explode("_", $data->unit);
-//                    $data->unit = $unit_data[0];
-//                    $data->context = $unit_data[1];
-//                } else {
-//                    $data->unit = 0;
-//                    $data->context = '';
-//                }
-//                // Clear other type fields
-//                $data->faculty = '';
-//                $data->course = '';
-//                $data->coursenumber = '';
-//                $data->campus = '';
-//                break;
-//
-//            case self::TEMPLATE_TYPE_FACULTY_COURSE:
-//                // These fields are from the course_group
-//                // $data->faculty, $data->course, $data->coursenumber are already set
-//                // Clear other type fields
-//                $data->unit = 0;
-//                $data->context = '';
-//                $data->campus="";
-//                break;
-//
-//            case self::TEMPLATE_TYPE_CAMPUS_COURSE:
-//                // These fields are from the course_group and campus dropdown
-//                // $data->campus, $data->faculty, $data->course, $data->coursenumber are already set
-//                // Clear other type fields
-//                $data->unit = 0;
-//                $data->context = '';
-//                break;
-//        }
     }
 
     /**

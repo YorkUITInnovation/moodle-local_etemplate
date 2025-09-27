@@ -42,10 +42,9 @@ $string['new'] = 'New';
 $string['pluginname'] = 'Email Templates';
 $string['reset'] = 'Reset';
 $string['return_to_templates'] = 'Return to email templates list';
-$string['signature'] = 'Unit Signature';
 $string['select'] = 'Select';
 $string['select_campus'] = 'Select Campus';
-$string['select_faculty'] = 'Select Faculty';
+$string['section'] = 'Section';
 $string['course_code'] = 'Course Code eg. MATH';
 $string['subject'] = 'Subject';
 $string['subject_help'] = 'The subject of the email';
@@ -70,10 +69,13 @@ $string['saveerror'] = 'Sorry there was an error saving the template, Please con
 
 $string['template_type'] = 'Template Types';
 $string['campus_faculty_level_template'] = 'Campus and/or Faculty template';
-$string['course_level_template'] = 'Faculty and Course template (Course level template)';
-$string['campus_course_level_template'] = 'Campus, Faculty and Course template';
+$string['campus_course_level_template'] = 'Campus and Course template';
 $string['error_template_type']  = 'Please select a template type';
 $string['template_type_help'] = 'Select the type of template you are creating. <br />';
+$string['error_unit_required'] = 'Unit is required.';
+$string['error_course_code_required'] = 'Course code is required.';
+$string['error_course_number_required'] = 'Course number is required.';
+$string['error_section_required'] = 'Section is required.';
 /**
  *  Clone email template
  */
