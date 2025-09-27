@@ -253,6 +253,8 @@ class email extends crud
                 $data->department = '';
                 break;
             case 'UNIT':
+                $data->unit = $unit_data[0];
+                $data->context = 'UNIT';
                 // Get unit information
             $sql = "Select
                         ou.shortname As faculty,
