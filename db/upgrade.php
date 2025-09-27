@@ -31,7 +31,8 @@ defined('MOODLE_INTERNAL') || die();
  * @param int $oldversion
  * @return bool
  */
-function xmldb_local_etemplate_upgrade($oldversion) {
+function xmldb_local_etemplate_upgrade($oldversion)
+{
     global $DB;
 
     $dbman = $DB->get_manager();
@@ -162,6 +163,170 @@ function xmldb_local_etemplate_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
+        // Define index idx_full_match (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_full_match', XMLDB_INDEX_NOTUNIQUE, ['campus', 'faculty', 'department', 'course', 'coursenumber', 'section', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_full_match.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_department (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_department', XMLDB_INDEX_NOTUNIQUE, ['campus', 'faculty', 'course', 'coursenumber', 'section', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_department.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_faculty_department (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_faculty_department', XMLDB_INDEX_NOTUNIQUE, ['campus', 'course', 'coursenumber', 'section', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_faculty_department.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_campus_department (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_campus_department', XMLDB_INDEX_NOTUNIQUE, ['faculty', 'course', 'coursenumber', 'section', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_campus_department.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_section (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_section', XMLDB_INDEX_NOTUNIQUE, ['campus', 'faculty', 'department', 'course', 'coursenumber', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_section.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_department_section (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_department_section', XMLDB_INDEX_NOTUNIQUE, ['campus', 'faculty', 'course', 'coursenumber', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_department_section.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_faculty_department_section (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_faculty_department_section', XMLDB_INDEX_NOTUNIQUE, ['campus', 'course', 'coursenumber', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_faculty_department_section.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_campus_department_section (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_campus_department_section', XMLDB_INDEX_NOTUNIQUE, ['faculty', 'course', 'coursenumber', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_campus_department_section.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_course (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_course', XMLDB_INDEX_NOTUNIQUE, ['campus', 'faculty', 'department', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_course.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_no_department_course (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_no_department_course', XMLDB_INDEX_NOTUNIQUE, ['campus', 'faculty', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_no_department_course.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_only_campus (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_only_campus', XMLDB_INDEX_NOTUNIQUE, ['campus', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_only_campus.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_only_faculty (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_only_faculty', XMLDB_INDEX_NOTUNIQUE, ['faculty', 'message_type', 'lang']);
+
+        // Conditionally launch add index idx_only_faculty.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index idx_active_deleted (not unique) to be added to local_et_email.
+        $table = new xmldb_table('local_et_email');
+        $index = new xmldb_index('idx_active_deleted', XMLDB_INDEX_NOTUNIQUE, ['active', 'deleted']);
+
+        // Conditionally launch add index idx_active_deleted.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+
+// Populate new fields campus, faculty and department based on context and unit fields.
+        $etemplates = $DB->get_records('local_et_email', []);
+
+        foreach ($etemplates as $etemplate) {
+            switch ($etemplate->context) {
+                case 'CAMPUS':
+                    // Get campus information
+                    $campus = $DB->get_record('local_organization_campus', ['id' => $etemplate->unit], '*', MUST_EXIST);
+                    // Update field campus for etemplate record
+                    $DB->set_field('local_et_email', 'campus', $campus->shortname, ['id' => $etemplate->id]);
+                    break;
+                case 'UNIT':
+                    // Get unit information
+                    $sql = "Select
+                        ou.shortname As faculty,
+                        oc.shortname As campus
+                    From
+                        {local_organization_campus} oc Inner Join
+                        {local_organization_unit} ou On ou.campus_id = oc.id
+                    Where
+                        ou.id = ?";
+                    $unit = $DB->get_record_sql($sql, [$etemplate->unit]);
+                    // Update fields campus and faculty for etemplate record
+                    $DB->set_field('local_et_email', 'campus', $unit->campus, ['id' => $etemplate->id]);
+                    $DB->set_field('local_et_email', 'faculty', $unit->faculty, ['id' => $etemplate->id]);
+                    break;
+                case 'DEPT':
+                    // Get dept information
+                    $sql = "Select
+                        od.shortname As department,
+                        ou.shortname As faculty,
+                        oc.shortname As campus
+                    From
+                        {local_organization_campus} oc Inner Join
+                        {local_organization_unit} ou On ou.campus_id = oc.id Inner Join
+                        {local_organization_dept} od On od.unit_id = ou.id
+                    Where
+                        od.id = ?";
+                    $dept = $DB->get_record_sql($sql, [$etemplate->unit]);
+                    // Update fields campus, faculty and course for etemplate record
+                    $DB->set_field('local_et_email', 'campus', $dept->campus, ['id' => $etemplate->id]);
+                    $DB->set_field('local_et_email', 'faculty', $dept->faculty, ['id' => $etemplate->id]);
+                    $DB->set_field('local_et_email', 'department', $dept->department, ['id' => $etemplate->id]);
+                    break;
+            }
+        }
 
         // Etemplate savepoint reached.
         upgrade_plugin_savepoint(true, 2025092700, 'local', 'etemplate');

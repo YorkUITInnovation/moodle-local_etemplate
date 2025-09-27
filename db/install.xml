@@ -32,6 +32,22 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
+
+        <INDEXES>
+            <INDEX NAME="idx_full_match" UNIQUE="false" FIELDS="campus,faculty,department,course,coursenumber,section,message_type,lang"/>
+            <INDEX NAME="idx_no_department" UNIQUE="false" FIELDS="campus,faculty,course,coursenumber,section,message_type,lang"/>
+            <INDEX NAME="idx_no_faculty_department" UNIQUE="false" FIELDS="campus,course,coursenumber,section,message_type,lang"/>
+            <INDEX NAME="idx_no_campus_department" UNIQUE="false" FIELDS="faculty,course,coursenumber,section,message_type,lang"/>
+            <INDEX NAME="idx_no_section" UNIQUE="false" FIELDS="campus,faculty,department,course,coursenumber,message_type,lang"/>
+            <INDEX NAME="idx_no_department_section" UNIQUE="false" FIELDS="campus,faculty,course,coursenumber,message_type,lang"/>
+            <INDEX NAME="idx_no_faculty_department_section" UNIQUE="false" FIELDS="campus,course,coursenumber,message_type,lang"/>
+            <INDEX NAME="idx_no_campus_department_section" UNIQUE="false" FIELDS="faculty,course,coursenumber,message_type,lang"/>
+            <INDEX NAME="idx_no_course" UNIQUE="false" FIELDS="campus,faculty,department,message_type,lang"/>
+            <INDEX NAME="idx_no_department_course" UNIQUE="false" FIELDS="campus,faculty,message_type,lang"/>
+            <INDEX NAME="idx_only_campus" UNIQUE="false" FIELDS="campus,message_type,lang"/>
+            <INDEX NAME="idx_only_faculty" UNIQUE="false" FIELDS="faculty,message_type,lang"/>
+            <INDEX NAME="idx_active_deleted" UNIQUE="false" FIELDS="active,deleted"/>
+        </INDEXES>
     </TABLE>
     <TABLE NAME="local_et_access" COMMENT="Default comment for the table, please edit me">
       <FIELDS>
