@@ -366,9 +366,9 @@ class email_form extends \moodleform
             if (empty(trim($data['coursenumber']))) {
                 $errors['course_group[coursenumber]'] = get_string('error_course_number_required', 'local_etemplate');
             }
-            if (empty(trim($data['section']))) {
-                $errors['course_group[section]'] = get_string('error_section_required', 'local_etemplate');
-            }
+//            if (empty(trim($data['section']))) {
+//                $errors['course_group[section]'] = get_string('error_section_required', 'local_etemplate');
+//            }
         }
 
         if (!empty($data['hascustommessage'])) {
