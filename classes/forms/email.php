@@ -143,7 +143,7 @@ class email_form extends \moodleform
         $course_group=array();
         $course_group[] = $mform->createElement('text', 'course', get_string('course_code', 'local_etemplate'), ['placeholder' => get_string('course_code', 'local_etemplate')]);
         $course_group[] = $mform->createElement('text', 'coursenumber', get_string('course_number', 'local_etemplate'), ['placeholder' => get_string('course_number', 'local_etemplate')]);
-        $course_group[] = $mform->createElement('text', 'section', get_string('section', 'local_etemplate'), ['placeholder' => get_string('section', 'local_etemplate')]);
+//        $course_group[] = $mform->createElement('text', 'section', get_string('section', 'local_etemplate'), ['placeholder' => get_string('section', 'local_etemplate')]);
 
         $mform->addGroup($course_group, 'course_group', get_string('course', 'local_etemplate'), ' ', false);
         // disable if view = 1
@@ -165,10 +165,10 @@ class email_form extends \moodleform
             'coursenumber',
             PARAM_TEXT
         );
-        $mform->setType(
-            'section',
-            PARAM_TEXT
-        );
+//        $mform->setType(
+//            'section',
+//            PARAM_TEXT
+//        );
         $mform->setType('template_type', PARAM_TEXT);
 
         $mform->addElement(

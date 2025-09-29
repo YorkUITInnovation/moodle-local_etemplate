@@ -35,7 +35,8 @@ if ($id) {
     }
 
     // Determine template_type for the form.
-    if (!empty($formdata->course) || !empty($formdata->coursenumber) || !empty($formdata->section)) {
+  //  if (!empty($formdata->course) || !empty($formdata->coursenumber) || !empty($formdata->section)) {
+    if (!empty($formdata->course) || !empty($formdata->coursenumber)) {
         $formdata->template_type = email::TEMPLATE_TYPE_CAMPUS_COURSE; // case where faculty staff is responsible for specific course
 
         // For course templates, we need to reconstruct the 'unit' value from campus/faculty/department.
