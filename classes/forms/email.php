@@ -40,7 +40,7 @@ class email_form extends \moodleform
             $campus_only_options[$campus->shortname] = $campus->name;
         }
 
-        $langs = get_string_manager()->get_list_of_translations();
+        $langs = ['en' => 'English', 'fr' => 'French'];
 
         $mform->addElement(
             'hidden',
@@ -163,7 +163,7 @@ class email_form extends \moodleform
         );
         $mform->setType(
             'coursenumber',
-            PARAM_TEXT
+            PARAM_INT
         );
 //        $mform->setType(
 //            'section',
@@ -360,6 +360,10 @@ class email_form extends \moodleform
         $errors = parent::validation($data, $files);
 
         if ($data['template_type'] == email::TEMPLATE_TYPE_CAMPUS_COURSE) {
+            if (!empty(trim($data['course']))) {
+                $data['course'] = strtoupper($data['course']);
+            }
+
             if (empty(trim($data['course']))) {
                 $errors['course_group[course]'] = get_string('error_course_code_required', 'local_etemplate');
             }
