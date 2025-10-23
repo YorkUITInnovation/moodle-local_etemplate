@@ -62,6 +62,7 @@ $params = array();
 // Define the SQL query to fetch data
 //retrieve campus id from form data when submit
 
+// CK Oct2025: Deprecate department field in favor of context/unit structure
 $fields = "e.id,
     e.parent_id,
     e.name,
@@ -76,7 +77,6 @@ $fields = "e.id,
     e.revision,
     e.deleted,
     e.faculty,
-    e.department,
     e.course,
     e.coursenumber,
     e.hascustommessage,

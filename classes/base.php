@@ -373,7 +373,7 @@ class base
             $faculties[$faculty->id . '_UNIT'] = $faculty->campus . ' / ' . $faculty->name;
         }
 
-        // Departments
+        // CK OCT25: DEPRECATED Departments and Major
         $major_sql = "SELECT od.id, od.name AS department, ou.name AS unit, oc.name AS campus
                       FROM {local_organization_dept} od
                       JOIN {local_organization_unit} ou ON ou.id = od.unit_id
@@ -388,13 +388,15 @@ class base
         return [
             get_string('campus', 'local_etemplate') => $campuses,
             get_string('faculty', 'local_etemplate') => $faculties,
-            get_string('major', 'local_etemplate') => $major_select
+            // DEPRECATED
+            //get_string('major', 'local_etemplate') => $major_select
         ];
     }
 
     public static function get_unit_value_from_template_data($formdata) {
         global $DB;
 
+        // CK OCT25: DEPRECATED Departments and Major
         if (!empty($formdata->department)) {
             $sql = "SELECT d.id FROM {local_organization_dept} d
                     JOIN {local_organization_unit} u ON u.id = d.unit_id
