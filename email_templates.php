@@ -90,7 +90,7 @@ $fields = "e.id,
     When e.message_type = 1
     Then 'Missed assignment'
     When e.message_type = 2
-    Then 'Missed exam'
+    Then 'Missed Test/Quiz'
     When e.message_type = 3
     Then 'Catch all'
     End As message_type_name,
