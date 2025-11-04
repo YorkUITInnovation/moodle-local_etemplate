@@ -407,15 +407,15 @@ class email extends crud
     {
         $messageTypes = [
             email::MESSAGE_TYPE_GRADE => get_string(
-                'grade',
+                'low_grade',
                 'local_etemplate'
             ),
             email::MESSAGE_TYPE_ASSIGNMENT => get_string(
-                'assignment',
+                'missed_assignment',
                 'local_etemplate'
             ),
             email::MESSAGE_TYPE_EXAM => get_string(
-                'exam',
+                'missed_exam',
                 'local_etemplate'
             ),
             email::MESSAGE_TYPE_CATCHALL => get_string(

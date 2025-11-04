@@ -3,6 +3,7 @@ $string['actions'] = 'Actions';
 $string['active'] = 'Active';
 $string['add_email_template'] = 'Add email template';
 $string['all_email_templates'] = 'All email templates';
+// deprecated $string['assignment']
 $string['assignment'] = 'Missed Assignment';
 $string['campus'] = 'Campus';
 $string['cancel'] = 'Cancel';
@@ -24,9 +25,20 @@ $string['error_subject'] = 'Subject is required';
 $string['error_message_body'] = 'Message body is required';
 $string['error_active'] = 'Active is required';
 $string['error_language'] = 'Language is required';
+// deprecated $string['exam']
 $string['exam'] = 'Missed Exam';
+
+/*
+ *  Updated Nice names for message types and must be changed in local_earlyalert.php as well since it is being maintained there too.
+ *   */
+$string['missed_assignment'] = 'Missed Assignment';
+$string['missed_exam'] = 'Missed Test/Quiz';
+$string['low_grade'] = 'Low grade';
+
 $string['faculty'] = 'Faculty';
 $string['filter'] = 'Filter';
+
+// deprecated $string['grade']
 $string['grade'] = 'Low Grade';
 $string['internal'] = 'Signature';
 $string['lang'] = 'Language';
