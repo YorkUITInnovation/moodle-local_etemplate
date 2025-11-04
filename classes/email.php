@@ -423,7 +423,7 @@ class email extends crud
                 'local_etemplate'
             ),
             email::MESSAGE_TYPE_SIGNATURE => get_string(
-                'signature',
+                'internal',
                 'local_etemplate'
             )
         ];
