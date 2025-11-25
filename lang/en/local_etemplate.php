@@ -25,6 +25,7 @@ $string['error_subject'] = 'Subject is required';
 $string['error_message_body'] = 'Message body is required';
 $string['error_active'] = 'Active is required';
 $string['error_language'] = 'Language is required';
+$string['hascustommessage_help'] = 'If checked, instructors will be able to add a custom message to the email template.';
 // deprecated $string['exam']
 $string['exam'] = 'Missed Exam';
 
