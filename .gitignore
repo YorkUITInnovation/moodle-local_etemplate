@@ -1,1 +1,20 @@
-idea/
+# IDE files
+.idea/
+*.iml
+
+# System files
+.DS_Store
+**/.DS_Store
+
+# Reference stub folder (Moodle core)
+stub/
+
+# GitHub workflows/actions
+.github/
+
+# Build artifacts
+amd/build/
+
+# Backup files
+*.bak
+*~
