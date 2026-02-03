@@ -74,6 +74,7 @@ $string['view_active'] = 'View active';
 $string['view_email_template'] = 'View email template';
 $string['view_inactive'] = 'View inactive';
 $string['hascustommessage'] = 'Custom message';
+$string['hascustommessage_help'] = 'Enable this option if you want to include a custom message placeholder in this template. When enabled, the [custommessage] tag must be present in the message body. This allows instructors to add personalized content when sending alerts to students.';
 $string['error_custommessage_missing'] = 'Custom message is required in the form. Please add [custommessage] to the template..';
 $string['savessuccess'] = 'Template saved successfully';
 $string['saveerror'] = 'Sorry there was an error saving the template, Please contact your administrator and notify them of the issue.';

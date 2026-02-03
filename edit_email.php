@@ -23,7 +23,6 @@
  */
 
 require_once("../../config.php");
-require_once(__DIR__ . '/classes/forms/email_form.php');
 
 use local_etemplate\base;
 use local_etemplate\email;
@@ -101,15 +100,7 @@ if ($id) {
     $page_header = get_string('add_email_template', 'local_etemplate');
 }
 
-// Debug: Verify class exists
-if (!class_exists('\local_etemplate\forms\email_form')) {
-    debugging('Class local_etemplate\forms\email_form does not exist', DEBUG_DEVELOPER);
-    $class_file = __DIR__ . '/classes/forms/email_form.php';
-    debugging('Looking for file: ' . $class_file, DEBUG_DEVELOPER);
-    debugging('File exists: ' . (file_exists($class_file) ? 'YES' : 'NO'), DEBUG_DEVELOPER);
-}
-
-$mform = new \local_etemplate\forms\email_form(
+$mform = new email_form(
     null,
     ['formdata' => $formdata]
 );
