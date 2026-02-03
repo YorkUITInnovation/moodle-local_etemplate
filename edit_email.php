@@ -100,7 +100,7 @@ if ($id) {
     $page_header = get_string('add_email_template', 'local_etemplate');
 }
 
-$mform = new local_etemplate\email_form(
+$mform = new local_etemplate\forms\email_form(
     null,
     ['formdata' => $formdata]
 );
