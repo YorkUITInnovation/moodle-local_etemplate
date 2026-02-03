@@ -14,6 +14,7 @@
         <FIELD NAME="lang" TYPE="char" LENGTH="6" NOTNULL="false" DEFAULT="en" SEQUENCE="false"/>
         <FIELD NAME="unit" TYPE="char" LENGTH="50" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="context" TYPE="char" LENGTH="8" NOTNULL="false" DEFAULT="CAMPUS" SEQUENCE="false" COMMENT="CAMPUS, UNIT, DEPARTMENT"/>
+        <FIELD NAME="campus" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Campus code"/>
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="message_type" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Email = 0 , Moodle internal = 1"/>
         <FIELD NAME="system_reserved" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
