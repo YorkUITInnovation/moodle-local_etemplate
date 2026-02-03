@@ -101,13 +101,13 @@ if ($id) {
     $page_header = get_string('add_email_template', 'local_etemplate');
 }
 
-$mform = new local_etemplate\forms\email_form(
+$mform = new email_form(
     null,
     ['formdata' => $formdata]
 );
 
 if ($mform->is_cancelled()) {
-    //Handle form cancel operation, if cancel button is present on form
+    //Handle form cancel operation, if cancel button is present on form dd
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
 } else if ($data = $mform->get_data()) {
     $EMAIL = new email($data->id);
@@ -155,7 +155,7 @@ if ($mform->is_cancelled()) {
     // this emailtemplate is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
     // or on the first display of the form.
     //Set default data (if any)
-    $mform->set_data($mform);
+    $mform->set_data($formdata);
 }
 
 
