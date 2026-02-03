@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026013000;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version = 2026020301;        // The current plugin version (Date: YYYYMMDDXX).
 $plugin->component = 'local_etemplate';
-$plugin->release = '1.0.0';
+$plugin->release = '1.0.1';
 $plugin->requires = 2025100600;       // Requires Moodle 5.1.
 $plugin->maturity = MATURITY_STABLE;
