@@ -11,16 +11,15 @@
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="subject" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="message" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="body" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="lang" TYPE="char" LENGTH="6" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="message_type" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="unit" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="context" TYPE="char" LENGTH="8" NOTNULL="false" DEFAULT="CAMPUS" SEQUENCE="false"/>
-        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="lang" TYPE="char" LENGTH="6" NOTNULL="false" DEFAULT="en" SEQUENCE="false"/>
+        <FIELD NAME="unit" TYPE="char" LENGTH="50" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="context" TYPE="char" LENGTH="8" NOTNULL="false" DEFAULT="CAMPUS" SEQUENCE="false" COMMENT="CAMPUS, UNIT, DEPARTMENT"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="message_type" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Email = 0, Moodle internal = 1"/>
         <FIELD NAME="system_reserved" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="revision" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="deleted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="campus" TYPE="char" LENGTH="2" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="deleted" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="campus" TYPE="char" LENGTH="2" NOTNULL="false" DEFAULT="" SEQUENCE="false"/>
         <FIELD NAME="faculty" TYPE="char" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="department" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="course" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
