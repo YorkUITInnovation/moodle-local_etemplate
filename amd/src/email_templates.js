@@ -47,7 +47,7 @@ function deleteEmailTemplate() {
             notification.confirm(delete_string, delete_template, delete_string, cancel, function () {
                 // Delete the record
                 var deleteCampus = ajax.call([{
-                    methodname: 'etemplate_email_delete',
+                    methodname: 'local_etemplate_email_delete',
                     args: {
                         id: id
                     }
