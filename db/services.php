@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'etemplate_email_delete' => [
+    'local_etemplate_email_delete' => [
         'classname' => 'local_etemplate\external\email_ws',
         'methodname' => 'delete',
         'description' => 'Delete email record.',

@@ -133,3 +133,31 @@ $string['email_template_header'] = '<div class="early-alert-template-guidelines"
         <li>Review content regularly for updates and accuracy</li>
     </ul>
 </div>';
+
+/**
+ * Privacy metadata
+ */
+$string['privacy:metadata:local_et_email'] = 'Information about email templates, including who modified them and when.';
+$string['privacy:metadata:local_et_email:name'] = 'The internal name of the email template.';
+$string['privacy:metadata:local_et_email:subject'] = 'The subject line of the email template.';
+$string['privacy:metadata:local_et_email:message'] = 'The email template message body which may contain administrator-provided content.';
+$string['privacy:metadata:local_et_email:active'] = 'Indicates whether the email template is active.';
+$string['privacy:metadata:local_et_email:usermodified'] = 'The user who last modified the email template.';
+$string['privacy:metadata:local_et_email:timecreated'] = 'The time when the email template was created.';
+$string['privacy:metadata:local_et_email:timemodified'] = 'The time when the email template was last modified.';
+
+$string['privacy:metadata:local_et_access'] = 'Information about email template access permissions, including who modified them and when.';
+$string['privacy:metadata:local_et_access:email_id'] = 'The identifier of the associated email template.';
+$string['privacy:metadata:local_et_access:context'] = 'The access restriction context for the email template.';
+$string['privacy:metadata:local_et_access:instance_id'] = 'The instance identifier associated with the access restriction.';
+$string['privacy:metadata:local_et_access:usermodified'] = 'The user who last modified the email template access record.';
+$string['privacy:metadata:local_et_access:timecreated'] = 'The time when the email template access record was created.';
+$string['privacy:metadata:local_et_access:timemodified'] = 'The time when the email template access record was last modified.';
+
+$string['privacy:metadata:local_et_filters'] = 'Information about email template filters, including who modified them and when.';
+$string['privacy:metadata:local_et_filters:email_id'] = 'The identifier of the associated email template.';
+$string['privacy:metadata:local_et_filters:context'] = 'The filter context applied to the email template.';
+$string['privacy:metadata:local_et_filters:value'] = 'The filter value associated with the context.';
+$string['privacy:metadata:local_et_filters:usermodified'] = 'The user who last modified the email template filter.';
+$string['privacy:metadata:local_et_filters:timecreated'] = 'The time when the email template filter was created.';
+$string['privacy:metadata:local_et_filters:timemodified'] = 'The time when the email template filter was last modified.';

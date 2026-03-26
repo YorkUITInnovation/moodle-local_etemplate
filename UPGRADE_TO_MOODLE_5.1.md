@@ -178,7 +178,7 @@ After deployment to Docker container, test the following:
 ### Technical Tests
 - [ ] No PHP errors in logs
 - [ ] JavaScript console has no errors
-- [ ] Web service `etemplate_email_delete` works correctly
+- [ ] Web service `local_etemplate_email_delete` works correctly
 - [ ] Page layouts render correctly (Bootstrap 5)
 - [ ] AMD module loads and executes properly
 
