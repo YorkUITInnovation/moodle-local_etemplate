@@ -382,6 +382,108 @@ class base
         return $permissions;
     }
 
+    /**
+     * Generate SQL WHERE clause for filtering email templates based on user's organizational advisor assignments.
+     * Users see templates for their assigned organizational units plus hierarchical parent templates.
+     *
+     * @param int|null $userid User ID (defaults to current user)
+     * @return string SQL WHERE clause fragment (empty string if site admin or no filtering needed)
+     * @throws \dml_exception
+     */
+    public static function get_template_filter_sql($userid = null) {
+        global $USER, $DB;
+
+        if (is_null($userid)) {
+            $userid = $USER->id;
+        }
+
+        // Site admins see all templates
+        if (is_siteadmin($userid)) {
+            return '';
+        }
+
+        $advisor_roles = self::get_adivsor_roles();
+
+        // Check if advisor_roles is empty or null
+        if (empty($advisor_roles)) {
+            // User has no advisor roles, show no templates
+            return ' AND 1 = 0';
+        }
+
+        $role_conditions = [];
+
+        // CAMPUS level: user sees all templates for their assigned campus
+        if (isset($advisor_roles['CAMPUS']) && !empty($advisor_roles['CAMPUS'])) {
+            $campus_ids = array_column($advisor_roles['CAMPUS'], 'instance_id');
+            $role_conditions[] = '(loa.user_context = \'CAMPUS\'
+                AND loa.instance_id IN (' . implode(',', $campus_ids) . ')
+                AND EXISTS (
+                    SELECT 1 FROM {local_organization_campus} oc
+                    WHERE oc.id = loa.instance_id
+                    AND oc.shortname = e.campus
+                ))';
+        }
+
+        // UNIT level: user sees templates matching their unit hierarchy
+        // Matches: 1) exact unit match (faculty + campus), 2) parent campus (campus only, no faculty)
+        if (isset($advisor_roles['UNIT']) && !empty($advisor_roles['UNIT'])) {
+            $unit_ids = array_column($advisor_roles['UNIT'], 'instance_id');
+            $role_conditions[] = '(loa.user_context = \'UNIT\'
+                AND loa.instance_id IN (' . implode(',', $unit_ids) . ')
+                AND EXISTS (
+                    SELECT 1 FROM {local_organization_unit} ou
+                    JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+                    WHERE ou.id = loa.instance_id
+                    AND oc.shortname = e.campus
+                    AND (
+                        -- Exact unit match: faculty + campus (course is empty/null)
+                        (ou.shortname = e.faculty AND (e.course IS NULL OR e.course = \'\'))
+                        OR
+                        -- Parent campus match: campus only (faculty and course are empty/null)
+                        ((e.faculty IS NULL OR e.faculty = \'\') AND (e.course IS NULL OR e.course = \'\'))
+                    )
+                ))';
+        }
+
+        // DEPARTMENT level: user sees templates matching their department hierarchy
+        // Matches: 1) exact dept match, 2) parent unit (no course), 3) grandparent campus (no faculty/course)
+        if (isset($advisor_roles['DEPT']) && !empty($advisor_roles['DEPT'])) {
+            $dept_ids = array_column($advisor_roles['DEPT'], 'instance_id');
+            $role_conditions[] = '(loa.user_context = \'DEPT\'
+                AND loa.instance_id IN (' . implode(',', $dept_ids) . ')
+                AND EXISTS (
+                    SELECT 1 FROM {local_organization_dept} od
+                    JOIN {local_organization_unit} ou ON ou.id = od.unit_id
+                    JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+                    WHERE od.id = loa.instance_id
+                    AND oc.shortname = e.campus
+                    AND (
+                        -- Exact department match: course + faculty + campus
+                        (od.shortname = e.course AND ou.shortname = e.faculty)
+                        OR
+                        -- Parent unit match: faculty + campus (course is empty/null)
+                        (ou.shortname = e.faculty AND (e.course IS NULL OR e.course = \'\'))
+                        OR
+                        -- Grandparent campus match: campus only (faculty and course are empty/null)
+                        ((e.faculty IS NULL OR e.faculty = \'\') AND (e.course IS NULL OR e.course = \'\'))
+                    )
+                ))';
+        }
+
+        // If no role conditions were generated, user has no valid advisor roles
+        if (empty($role_conditions)) {
+            return ' AND 1 = 0';
+        }
+
+        $sql = ' AND EXISTS (
+            SELECT 1 FROM {local_organization_advisor} loa
+            WHERE loa.user_id = ' . $userid . '
+            AND (' . implode(' OR ', $role_conditions) . ')
+        )';
+
+        return $sql;
+    }
+
     public static function get_unit_options() {
         global $DB;
 

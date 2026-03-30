@@ -191,25 +191,10 @@ From
 $sql = 'e.deleted = 0 ';
 $sql .= 'AND e.active = ' . $active;
 
-$advisor_roles = base::get_adivsor_roles();
-
-$where_clause = '';
-if ($advisor_roles) {
-    $conditions = [];
-
-    foreach ($advisor_roles as $context => $instances) {
-        $instance_ids = array_column($instances, 'instance_id');
-        // Convert DEPARTMENT to DEPT
-        if ($context == 'DEPARTMENT') {
-            $context = 'DEPT';
-        }
-        $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context = '$context')";
-    }
-
-    $where_clause = ' AND (' . implode(' OR ', $conditions) . ')';
-
-    $sql .= $where_clause;
-}
+// Filter templates based on user's organizational advisor assignments
+// Users should only see templates for organizational units they're assigned to
+// including hierarchical parent templates (dept advisors see dept + unit + campus templates)
+$sql .= base::get_template_filter_sql($USER->id);
 
 if (!empty($term_filter)) {
     $sql .= " AND ((LOWER(e.name) LIKE '%$term_filter%'))";

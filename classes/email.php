@@ -266,16 +266,23 @@ class email extends crud
         global $DB;
         // Unset fields not relevant to the selected template type to ensure data integrity.
         $unit_data = explode('_', $data->unit);
+
+        // Determine if this is a course template - need to preserve course/coursenumber fields
+        $is_course_template = ($data->template_type == self::TEMPLATE_TYPE_CAMPUS_COURSE);
+
         switch ($unit_data[1]) {
             case 'CAMPUS':
                 $data->unit = $unit_data[0];
                 $data->context = 'CAMPUS';
                 // Get campus information
                 $campus = $DB->get_record('local_organization_campus', ['id' => $unit_data[0]], '*', MUST_EXIST);
-                // Clear other type fields
+                // Set campus shortname
                 $data->campus = $campus->shortname;
-                $data->faculty = '';
-                $data->department = '';
+                // For non-course templates, clear faculty and department
+                if (!$is_course_template) {
+                    $data->faculty = '';
+                    $data->department = '';
+                }
                 break;
             case 'UNIT':
                 $data->unit = $unit_data[0];
@@ -290,10 +297,13 @@ class email extends crud
                     Where
                         ou.id = ?";
                 $unit = $DB->get_record_sql($sql, [$unit_data[0]]);
-                // Clear other type fields
+                // Set campus and faculty shortnames
                 $data->campus = $unit->campus;
                 $data->faculty = $unit->faculty;
-                $data->department = '';
+                // For non-course templates, clear department
+                if (!$is_course_template) {
+                    $data->department = '';
+                }
                 break;
             case 'DEPT':
                 $data->unit = $unit_data[0];
@@ -310,18 +320,22 @@ class email extends crud
                         Where
                             od.id = ?";
                 $dept = $DB->get_record_sql($sql, [$unit_data[0]]);
-                // Clear other type fields
+                // Set all shortnames
                 $data->campus = $dept->campus;
                 $data->faculty = $dept->faculty;
                 $data->department = $dept->department;
                 break;
         }
 
+        // For CAMPUS_FACULTY templates, clear course-specific fields
         if ($data->template_type == self::TEMPLATE_TYPE_CAMPUS_FACULTY) {
             $data->course = '';
             $data->coursenumber = '';
             $data->section = '';
         }
+        // For CAMPUS_COURSE templates, ensure course field is mapped correctly
+        // Note: 'course' field in form maps to 'course' in database (department shortname)
+        // This was already set by the form, so we don't need to do anything here
 
         return $data;
     }
