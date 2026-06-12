@@ -1,14 +1,16 @@
 # local_etemplate Claude Guide
 
 ## Working Style
-Analyze the repository before coding. Use step-by-step validation and keep assumptions conservative until the code confirms them.
+Analyze the repository before coding and validate assumptions step by step. Keep the current behavior intact unless repository evidence and the request both justify a change.
 
-This plugin appears to manage email templates within Moodle local administration. Based on repository evidence, that includes list and edit flows, AJAX deletion, external service registration, and pluginfile support for template assets.
+Repository evidence shows this plugin manages email templates, AJAX deletion, external service registration, and pluginfile support.
+
+Use `.github/skills/moodle-coding-style.md` as the primary style authority if present. Preserve all existing features, logic, behavior, output, and integration contracts.
 
 ## Reasoning Rules
 - Start from the smallest concrete file that controls the behavior.
 - Verify the relevant page, class, capability, service, and frontend file before proposing a change.
-- When evidence is incomplete, surface the gap instead of synthesizing a likely architecture.
+- Surface uncertainty instead of synthesizing a likely architecture.
 - Explain tradeoffs before changing files that affect schema, access control, or service contracts.
 - Prefer reversible, incremental edits over broad rewrites.
 
@@ -31,6 +33,7 @@ Before implementing, inspect:
 - Preserve current namespaced class usage, lang string naming, and component naming.
 - Keep access control and context checks intact.
 - Avoid introducing new architecture unless the repository already supports it.
+- Treat refactoring as structural and readability-only unless the request explicitly says otherwise.
 
 ## Validation Mindset
 - Validate the narrowest affected path first.

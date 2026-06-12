@@ -9,6 +9,7 @@ These guidelines define shared standards for AI-assisted development in this plu
 - Prefer Moodle core abstractions over custom replacements.
 - Preserve compatibility first, especially for Moodle 5.1 and likely 5.2-safe behavior unless the repository proves otherwise.
 - Keep changes small, reviewable, and easy to revert.
+- If `.github/skills/moodle-coding-style.md` is present, treat it as the primary style reference.
 
 ## Coding Conventions
 - Follow Moodle PHP, DB, capability, string, and security patterns.
@@ -21,6 +22,7 @@ These guidelines define shared standards for AI-assisted development in this plu
 - Identify sensitive files first: access rules, services, upgrade scripts, install XML, external APIs, and frontend behavior that triggers privileged actions.
 - Prefer incremental extensions to existing behavior.
 - Do not introduce a new architecture unless the repository already supports it or the request explicitly requires it.
+- Do not change features, logic, behavior, output, schema, APIs, or integrations as part of a refactor-only task.
 
 ## Review Hygiene
 - State assumptions before implementation.
