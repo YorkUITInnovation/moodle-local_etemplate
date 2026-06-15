@@ -51,96 +51,112 @@ class email extends crud
     const MESSAGE_TYPE_SIGNATURE = 4;
 
     /**
+     * Unique identifier for the email template.
      *
      * @var int
      */
     private $id;
 
     /**
+     * Parent template ID for template inheritance.
      *
      * @var int
      */
     private $parentid;
 
     /**
+     * Name of the email template.
      *
      * @var string
      */
     private $name;
 
     /**
+     * Subject line for the email template.
      *
      * @var string
      */
     private $subject;
 
     /**
+     * Message body content for the email template.
      *
      * @var string
      */
     private $message;
 
     /**
+     * Language code for the email template.
      *
      * @var string
      */
     private $lang;
 
     /**
+     * Whether the email template is active (1) or inactive (0).
      *
      * @var int
      */
     private $active;
 
     /**
+     * Message type identifier for this template.
      *
      * @var int
      */
     private $messagetype;
 
     /**
+     * Whether this is a system-reserved template (1) or user-defined (0).
      *
      * @var int
      */
     private $system_reserved;
 
     /**
+     * Whether the email template is marked as deleted (1) or active (0).
      *
      * @var int
      */
     private $deleted;
 
     /**
+     * User ID of the last user to modify this template.
      *
      * @var int
      */
     private $usermodified;
 
     /**
+     * Unix timestamp when the template was created.
      *
      * @var int
      */
     private $timecreated;
 
     /**
+     * Human-readable formatted creation time.
      *
      * @var string
      */
     private $timecreated_hr;
 
     /**
+     * Unix timestamp when the template was last modified.
      *
      * @var int
      */
     private $timemodified;
 
     /**
+     * Human-readable formatted modification time.
      *
      * @var string
      */
     private $timemodified_hr;
 
     /**
+     * Database table name for this model.
      *
      * @var string
      */

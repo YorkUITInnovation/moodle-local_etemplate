@@ -53,19 +53,18 @@ $term = optional_param('q', '', PARAM_TEXT);
 $formdata = new stdClass();
 $formdata->name = $term;
 $formdata->active = $active;
-//
-//
-$mform = new email_templates_filter_form(null, array('formdata' => $formdata));
+
+$mform = new email_templates_filter_form(null, ['formdata' => $formdata]);
 
 if ($mform->is_cancelled()) {
-    // Handle form cancel operation, if cancel button is present
+    // Handle form cancel operation, if cancel button is present.
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
-} else if ($data = $mform->get_data()) { // form is submitted with filter
-    // Process validated data
+} elseif ($data = $mform->get_data()) { // Form is submitted with filter.
+    // Process validated data.
     $term_filter = $data->q;
     $campus_id = $data->campus_id;
 } else {
-    // Display the form
+    // Display the form.
     $mform->display();
 }
 
@@ -78,11 +77,12 @@ if ($active == 0) {
     $table->sortable(true, 'name', SORT_ASC);
 }
 
-$params = array();
-// Define the SQL query to fetch data
-//retrieve campus id from form data when submit
+$params = [];
 
-// CK Oct2025: Deprecate department field in favor of context/unit structure
+// Define the SQL query to fetch data.
+// Retrieve campus id from form data when submit.
+
+// CK Oct2025: Deprecate department field in favor of context/unit structure.
 $fields = "e.id,
     e.parent_id,
     e.name,
@@ -199,7 +199,7 @@ if ($advisor_roles) {
 
     foreach ($advisor_roles as $context => $instances) {
         $instance_ids = array_column($instances, 'instance_id');
-        // Convert DEPARTMENT to DEPT
+        // Convert DEPARTMENT to DEPT.
         if ($context == 'DEPARTMENT') {
             $context = 'DEPT';
         }
@@ -214,10 +214,10 @@ if ($advisor_roles) {
 if (!empty($term_filter)) {
     $sql .= " AND ((LOWER(e.name) LIKE '%$term_filter%'))";
 }
-// Define the SQL query to fetch data
+// Define the SQL query to fetch data.
 $table->set_sql($fields, '{local_et_email} e', $sql);
 
-// Define the base URL for the table
+// Define the base URL for the table.
 $table->define_baseurl(new moodle_url('/local/etemplate/email_templates.php'));
 
 base::page(
@@ -228,7 +228,7 @@ base::page(
 
 echo $OUTPUT->header();
 echo get_string('email_template_header', 'local_etemplate');
-// Set up the table
+// Set up the table.
 $mform->display();
 $table->out(20, true);
 echo $OUTPUT->footer();

@@ -26,40 +26,37 @@ import ajax from 'core/ajax';
 import {get_string as getString} from 'core/str';
 
 export const init = () => {
-    deleteEmailTemplate();
+    delete_email_template();
 };
 
 /**
- * Delete Unit
+ * Bind delete email template actions.
  */
-function deleteEmailTemplate() {
-    // Pop-up notification when .btn-local-organization-delete-campus is clicked
+function delete_email_template() {
+    // Pop-up notification when .btn-local-etemplate-delete-email is clicked.
     document.querySelectorAll('.btn-local-etemplate-delete-email').forEach(button => {
         button.addEventListener('click', function () {
-            // Get the data id attribute value
-            var id = this.getAttribute('data-id');
-            var row = this.closest('tr');
-            var delete_string = getString('delete', 'local_etemplate');
-            var delete_template = getString('delete_email_template', 'local_etemplate');
-            var cancel = getString('cancel', 'local_etemplate');
-            var could_not_delete_unit = getString('could_not_delete_email_template', 'local_etemplate');
-            // Notification
-            notification.confirm(delete_string, delete_template, delete_string, cancel, function () {
-                // Delete the record
-                var deleteCampus = ajax.call([{
+            const id = this.getAttribute('data-id');
+            const row = this.closest('tr');
+            const deleteString = getString('delete', 'local_etemplate');
+            const deleteTemplateText = getString('delete_email_template', 'local_etemplate');
+            const cancel = getString('cancel', 'local_etemplate');
+            const couldNotDeleteEmailTemplate = getString('could_not_delete_email_template', 'local_etemplate');
+
+            notification.confirm(deleteString, deleteTemplateText, deleteString, cancel, function () {
+                const deleteTemplateRequest = ajax.call([{
                     methodname: 'local_etemplate_email_delete',
                     args: {
                         id: id
                     }
                 }]);
-                deleteCampus[0].done(function () {
+
+                deleteTemplateRequest[0].done(function () {
                     row.remove();
                 }).fail(function () {
-                   notification.alert(could_not_delete_unit);
+                    notification.alert(couldNotDeleteEmailTemplate);
                 });
             });
-
         });
     });
-
 }

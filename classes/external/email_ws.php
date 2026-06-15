@@ -58,8 +58,6 @@ class email_ws extends external_api {
      * @return array Status and message
      */
     public static function delete($id) {
-        global $USER;
-
         // Parameter validation.
         $params = self::validate_parameters(self::delete_parameters(), [
             'id' => $id
@@ -77,7 +75,7 @@ class email_ws extends external_api {
             $email->delete_email();
             $status = true;
             $message = get_string('deletesuccess', 'local_etemplate', $email->get_name());
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $status = false;
             $message = get_string('could_not_delete_email_template', 'local_etemplate');
         }
