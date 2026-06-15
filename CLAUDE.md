@@ -1,41 +1,50 @@
-# local_etemplate Claude Guide
+# CLAUDE.md
 
-## Working Style
-Analyze the repository before coding and validate assumptions step by step. Keep the current behavior intact unless repository evidence and the request both justify a change.
+## Purpose
 
-Repository evidence shows this plugin manages email templates, AJAX deletion, external service registration, and pluginfile support.
+Execution guidance for `local/etemplate` with focus on plugin behavior stability and Moodle 5.1 conventions.
 
-Use `.github/skills/moodle-coding-style.md` as the primary style authority if present. Preserve all existing features, logic, behavior, output, and integration contracts.
+## Plugin Behavior Constraints
 
-## Reasoning Rules
-- Start from the smallest concrete file that controls the behavior.
-- Verify the relevant page, class, capability, service, and frontend file before proposing a change.
-- Surface uncertainty instead of synthesizing a likely architecture.
-- Explain tradeoffs before changing files that affect schema, access control, or service contracts.
-- Prefer reversible, incremental edits over broad rewrites.
+- Treat email template management flows as stable unless the request explicitly changes requirements.
+- Keep list/create/edit/delete template behavior compatible with existing UI and data expectations.
+- Preserve AJAX delete flow semantics and returned structure expected by frontend code.
+- Preserve external API/service contracts and signatures.
+- Preserve pluginfile access behavior and related permission checks.
 
-## Evidence to Check First
-Before implementing, inspect:
-- `version.php`
-- `settings.php`
+## Working Method
+
+- Analyze current repository behavior before coding.
+- Start from the smallest file that controls the requested behavior.
+- Prefer incremental, reversible edits.
+- Surface uncertainty instead of assuming undocumented behavior.
+
+## Moodle Rules to Enforce
+
+- Follow Moodle 5.1 coding standards and `.github/skills` guidance.
+- Never add `declare(strict_types=1);`.
+- Require authentication, capability checks, and `sesskey` where applicable.
+- Validate inputs with `required_param` / `optional_param` and `PARAM_*`.
+- Use `$DB` placeholders only and `get_string()` for user-visible text.
+- Use templates + `$OUTPUT` renderers (no `html_writer`).
+- Keep JS in `amd/src` using ES6; do not introduce jQuery.
+
+## High-Impact Files
+
 - `db/access.php`
 - `db/services.php`
 - `db/install.xml`
 - `db/upgrade.php`
+- `settings.php`
 - `lib.php`
-- `classes/`
-- `lang/`
-- `amd/src/`
+- `classes/external/*`
+- `amd/src/*`
 
-## Change Boundaries
-- Do not invent capabilities, callbacks, services, tables, or external functions.
-- Do not assume undocumented template fields, delete flows, or data dependencies.
-- Preserve current namespaced class usage, lang string naming, and component naming.
-- Keep access control and context checks intact.
-- Avoid introducing new architecture unless the repository already supports it.
-- Treat refactoring as structural and readability-only unless the request explicitly says otherwise.
+For these files, verify backward compatibility and integration safety before finalizing changes.
 
-## Validation Mindset
-- Validate the narrowest affected path first.
-- Re-check both happy-path and permission-sensitive behavior.
-- If a change touches data, external services, or upgrade logic, confirm install and upgrade implications before expanding scope.
+## Validation Expectations
+
+- Validate syntax and direct affected flows.
+- Re-check permission-sensitive paths.
+- Re-check install/upgrade implications for DB/service/admin-setting changes.
+- Keep changes within request scope; avoid unrelated refactors.

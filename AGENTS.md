@@ -1,35 +1,33 @@
-# local_etemplate Agent Guide
+# AGENTS.md
 
 ## Purpose
-Repository evidence shows this plugin provides email template management with admin entry points, list and edit flows, AJAX delete behavior, external service integration, and pluginfile support.
 
-Use this guide for maintainability and AI readiness only. Preserve all existing features, logic, behavior, output, and integration contracts.
+Guidance for coding agents and contributors working in `local/etemplate`.
 
-## Primary References
-Check these before changing code:
-- `.github/skills/moodle-coding-style.md` if present
-- `README.md`
-- `version.php`
-- `settings.php`
-- `db/access.php`
-- `db/services.php`
-- `db/install.xml`
-- `db/upgrade.php`
-- `lib.php`
-- `classes/`
-- `lang/`
-- `amd/src/`
+## Scope
 
-## Safe Refactor Rules
-- Keep changes small, reviewable, and reversible.
-- Preserve the existing plugin behavior unless the request explicitly asks for a change.
-- Keep admin pages, capabilities, AJAX endpoints, and DB structures stable.
-- Prefer existing patterns over new abstractions.
-- Keep callback-style files lean; place logic in classes when the repository already does so.
-- Do not invent architecture, APIs, schema, behavior, or feature set that the repository does not show.
+- This file applies to the entire plugin folder: `local/etemplate`.
+- If a more specific `AGENTS.md` exists in a subfolder, that file takes precedence for the subtree.
 
-## Sensitive Files
-Treat these as high-impact and validate them carefully before editing:
+## Plugin-Specific Focus
+
+- This plugin manages email templates and related administration flows.
+- Keep template list/create/edit/delete behavior stable unless the request explicitly requires behavior changes.
+- Preserve pluginfile handling behavior and access protections in `lib.php`.
+- Preserve external function contracts and service definitions used by frontend or integrations.
+
+## Required Moodle Practices
+
+- Follow Moodle 5.1 coding standards and `.github/skills` guidance.
+- Do **not** use `declare(strict_types=1);`.
+- Use Moodle core APIs and patterns before custom implementations.
+- Do not use `html_writer`; use templates and `$OUTPUT` renderers.
+- Do not use jQuery; keep JS in `amd/src` as ES6 modules.
+
+## Sensitive Areas
+
+Treat these as high-impact and validate carefully:
+
 - `db/access.php`
 - `db/services.php`
 - `db/install.xml`
@@ -38,10 +36,32 @@ Treat these as high-impact and validate them carefully before editing:
 - `lib.php`
 - `classes/external/*`
 - `amd/src/*`
-- any file that performs delete, clone, restore, or AJAX actions
+- delete/AJAX handlers and any code path mutating template data
 
-## Validation
-- Prefer repository-defined checks when available.
-- Validate syntax and targeted behavior for the touched area.
-- Re-check capability, permission, and data-impact paths for UI, AJAX, or external-function changes.
-- If DB, service, or upgrade behavior changes, confirm install and upgrade safety before broadening scope.
+## Security and Data Rules
+
+- Require authentication and correct capability checks before read/write actions.
+- Require valid `sesskey` for state-changing actions.
+- Validate all request parameters with Moodle param APIs.
+- Use `$DB` with placeholders only; never interpolate untrusted SQL values.
+- Use `get_string()` for user-facing text.
+
+## Change Scope and Quality
+
+- Keep changes narrowly scoped to the request.
+- Avoid unrelated refactors and architecture changes.
+- Preserve backward compatibility unless an explicit migration/update path is required.
+- Add/update automated tests for non-trivial logic changes when practical.
+
+## Implementation Checklist
+
+Before finalizing changes, verify:
+
+1. Authentication + capability checks are context-correct.
+2. State-changing flows require `sesskey`.
+3. Inputs are validated with `required_param` / `optional_param` and `PARAM_*`.
+4. SQL uses Moodle DB APIs with placeholders.
+5. User-visible strings come from language packs.
+6. UI output uses renderers/templates (no `html_writer`).
+7. `moodle501_core` is untouched.
+8. Email-template, external-service, and pluginfile behavior remains compatible.
