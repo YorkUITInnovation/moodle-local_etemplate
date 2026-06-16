@@ -23,6 +23,7 @@
  */
 
 require_once("../../config.php");
+require_once($CFG->libdir . '/filelib.php');
 
 use local_etemplate\base;
 use local_etemplate\email;
@@ -109,7 +110,7 @@ $mform = new email_form(
 if ($mform->is_cancelled()) {
     //Handle form cancel operation, if cancel button is present on form dd
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
-} else if ($data = $mform->get_data()) {
+} else if (!$view && ($data = $mform->get_data())) {
     $EMAIL = new email($data->id);
 
     //save editor text

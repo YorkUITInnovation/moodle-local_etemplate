@@ -52,6 +52,7 @@ class email_form extends \moodleform
         global $USER, $CFG, $DB, $OUTPUT, $PAGE;
 
         $formdata = $this->_customdata['formdata'];
+        $is_read_only = !empty($formdata->view);
         $mform = &$this->_form;
 
         $context = \context_system::instance();
@@ -379,7 +380,15 @@ class email_form extends \moodleform
             'required', null, 'client'
         );
 
-        $this->add_action_buttons();
+        if ($is_read_only) {
+            // In view mode, freeze all fields and render a cancel-only action row.
+            $mform->hardFreeze();
+            $buttonarray = [];
+            $buttonarray[] = $mform->createElement('cancel');
+            $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
+        } else {
+            $this->add_action_buttons();
+        }
         $this->set_data($formdata);
     }
 
