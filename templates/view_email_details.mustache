@@ -1,0 +1,47 @@
+{{!
+    Template for displaying email template details.
+    
+    Data expected:
+    - name: string
+    - active: int/bool
+    - subject: string
+    - message: string
+    - lang: string
+    - messagetype_nicename: string
+    - system_reserved: int/bool
+    - deleted: int/bool
+    - timecreated: string (formatted)
+    - timemodified: string (formatted)
+}}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>{{#str}}name, core{{/str}}</th>
+                <th>{{#str}}status, core{{/str}}</th>
+                <th>{{#str}}subject, moodle{{/str}}</th>
+                <th>{{#str}}message, core{{/str}}</th>
+                <th>{{#str}}language{{/str}}</th>
+                <th>{{#str}}type, core{{/str}}</th>
+                <th>{{#str}}reserved{{/str}}</th>
+                <th>{{#str}}deleted, core{{/str}}</th>
+                <th>{{#str}}timecreated, core{{/str}}</th>
+                <th>{{#str}}timemodified, core{{/str}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{name}}</td>
+                <td>{{active}}</td>
+                <td>{{subject}}</td>
+                <td>{{message}}</td>
+                <td>{{lang}}</td>
+                <td>{{messagetype_nicename}}</td>
+                <td>{{system_reserved}}</td>
+                <td>{{deleted}}</td>
+                <td>{{timecreated}}</td>
+                <td>{{timemodified}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

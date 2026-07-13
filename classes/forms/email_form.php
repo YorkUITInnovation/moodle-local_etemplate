@@ -52,13 +52,14 @@ class email_form extends \moodleform
         global $USER, $CFG, $DB, $OUTPUT, $PAGE;
 
         $formdata = $this->_customdata['formdata'];
+        $is_read_only = !empty($formdata->view);
         $mform = &$this->_form;
 
         $context = \context_system::instance();
 
         $messageTypes = \local_etemplate\email::get_messagetype_nicename();
-        // Prepare all select options which will be divided by groups
-        $unit_select = base::get_unit_options();
+        // Prepare unit select options scoped to the current user's advisor assignments.
+        $unit_select = base::get_unit_options_for_user();
 
         // Get campus dropdown data for campus_only field
         $campus_sql = "SELECT id, name, shortname FROM {local_organization_campus} ORDER BY name";
@@ -379,7 +380,15 @@ class email_form extends \moodleform
             'required', null, 'client'
         );
 
-        $this->add_action_buttons();
+        if ($is_read_only) {
+            // In view mode, freeze all fields and render a cancel-only action row.
+            $mform->hardFreeze();
+            $buttonarray = [];
+            $buttonarray[] = $mform->createElement('cancel');
+            $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
+        } else {
+            $this->add_action_buttons();
+        }
         $this->set_data($formdata);
     }
 

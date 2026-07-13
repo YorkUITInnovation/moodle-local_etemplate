@@ -1,9 +1,25 @@
 <?php
-/*
- * Author: Admin User
- * Create Date: 6-01-2024
- * License: LGPL 
- * 
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Legacy model class.
+ *
+ * @package    local_etemplate
+ * @copyright  2026 Your Organization
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_etemplate;
@@ -13,63 +29,71 @@ use local_etemplate\crud;
 
 class group extends crud
 {
-
-
     /**
+     * Unique identifier for the group.
      *
      * @var int
      */
     private $id;
 
     /**
+     * Parent group ID for group hierarchy.
      *
      * @var int
      */
     private $parentid;
 
     /**
+     * Full name of the group.
      *
      * @var string
      */
     private $name;
 
     /**
+     * Short name or abbreviation for the group.
      *
      * @var string
      */
     private $shortname;
 
     /**
+     * User ID of the last user to modify this group record.
      *
      * @var int
      */
     private $usermodified;
 
     /**
+     * Unix timestamp when this group record was created.
      *
      * @var int
      */
     private $timecreated;
 
     /**
+     * Human-readable formatted creation time.
      *
      * @var string
      */
     private $timecreated_hr;
 
     /**
+     * Unix timestamp when this group record was last modified.
      *
      * @var int
      */
     private $timemodified;
 
     /**
+     * Human-readable formatted modification time.
      *
      * @var string
      */
     private $timemodified_hr;
 
     /**
+     * Database table name for this model.
      *
      * @var string
      */
@@ -77,12 +101,13 @@ class group extends crud
 
 
     /**
+     * Constructor to initialize group object.
      *
-     *
+     * @param int $id The group ID to load (optional, defaults to 0 for new record).
      */
     public function __construct($id = 0)
     {
-        global $CFG, $DB, $DB;
+        global $CFG, $DB;
 
         $this->table = 'local_et_group';
 

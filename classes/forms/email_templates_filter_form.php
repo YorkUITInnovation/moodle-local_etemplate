@@ -75,8 +75,7 @@ class email_templates_filter_form extends \moodleform
                 $mform->createElement(
                     'submit',
                     'submitbutton',
-                    get_string('filter', 'local_etemplate'),
-                    array('onclick' => 'window.location.href = \'edit_email.php' . '\';')
+                    get_string('filter', 'local_etemplate')
                 ),
                 $mform->createElement(
                     'cancel',
@@ -103,8 +102,7 @@ class email_templates_filter_form extends \moodleform
                 $mform->createElement(
                     'submit',
                     'submitbutton',
-                    get_string('filter', 'local_etemplate'),
-                    array('onclick' => 'window.location.href = \'edit_email.php' . '\';')
+                    get_string('filter', 'local_etemplate')
                 ),
                 $mform->createElement(
                     'cancel',

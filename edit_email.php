@@ -23,6 +23,7 @@
  */
 
 require_once("../../config.php");
+require_once($CFG->libdir . '/filelib.php');
 
 use local_etemplate\base;
 use local_etemplate\email;
@@ -46,6 +47,13 @@ $view = optional_param(
 
 
 $context = context_system::instance();
+
+// Capability check: editing requires the edit capability; viewing requires view.
+if ($view) {
+    require_capability('local/etemplate:view', $context);
+} else {
+    require_capability('local/etemplate:edit', $context);
+}
 
 if ($id) {
     $EMAIL = new email($id);
@@ -71,6 +79,15 @@ if ($id) {
 
     // Ensure hascustommessage is set for the form
     $formdata->hascustommessage = isset($formdata->hascustommessage) ? $formdata->hascustommessage : 0;
+
+    // Unit-level access gate: verify the current user's advisor scope covers this template.
+    if (!is_siteadmin($USER->id)) {
+        $unit_value = $formdata->unit ?? '';
+        if (!base::user_can_access_unit_value($unit_value)) {
+            throw new \moodle_exception('nopermissions', 'error',
+                $CFG->wwwroot . '/local/etemplate/email_templates.php');
+        }
+    }
 
     $unit = $EMAIL->get_unit();
     $context = context_system::instance();
@@ -109,7 +126,15 @@ $mform = new email_form(
 if ($mform->is_cancelled()) {
     //Handle form cancel operation, if cancel button is present on form dd
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
-} else if ($data = $mform->get_data()) {
+} else if (!$view && ($data = $mform->get_data())) {
+    // Re-validate unit access on save to prevent tampering via direct POST.
+    if (!is_siteadmin($USER->id)) {
+        if (!base::user_can_access_unit_value($data->unit ?? '')) {
+            \core\notification::error(get_string('nopermissions', 'error'));
+            redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
+        }
+    }
+
     $EMAIL = new email($data->id);
 
     //save editor text

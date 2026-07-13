@@ -24,13 +24,27 @@
 
 require_once("../../config.php");
 
+use local_etemplate\base;
 use local_etemplate\email;
 
-global $CFG, $DB;
+require_login(1, false);
+
+global $CFG, $DB, $USER;
 
 $id = required_param('id', PARAM_INT);
 
-$email = new email($id);
-$email->undelete_email($id);
+$context = context_system::instance();
+$PAGE->set_context($context);
+
+require_capability('local/etemplate:undelete', $context);
+
+if (!is_siteadmin($USER->id) && !base::user_can_access_template_id($id)) {
+    print_error('nopermissions', 'error', $CFG->wwwroot . '/local/etemplate/email_templates.php');
+}
+
+require_sesskey();
+
+$emailobj = new email($id);
+$emailobj->undelete_email($id);
 
 redirect(new moodle_url('/local/etemplate/email_templates.php'));

@@ -22,15 +22,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once("../../config.php");
+require_once('../../config.php');
 
 use local_etemplate\base;
 use local_etemplate\email;
 
+require_login(1, false);
+
 $id = required_param('id', PARAM_INT);
 
-$errmsg = optional_param('errormsg','',PARAM_TEXT);
-if (!empty($errmsg)){
+$errmsg = optional_param('errormsg', '', PARAM_TEXT);
+if (!empty($errmsg)) {
     $notification = new \core\notification();
     $messagetext = get_string('message_' . $errmsg, 'local_etemplate');
     $errormessage = $notification->error($messagetext, '');
@@ -40,28 +42,31 @@ if (!empty($errmsg)){
 
 $context = context_system::instance();
 $PAGE->set_context($context);
+
+require_capability('local/etemplate:view', $context);
+
 $page_header = get_string('email_template', 'local_etemplate');
 $email = new email($id);
 
-$table = new html_table();
-$table->id = 'local_etemplates_email_list';
-$content = "";
+// Prepare template context for rendering email details.
+$templatedata = (object) [
+    'name' => $email->get_name(),
+    'active' => $email->get_active(),
+    'subject' => $email->get_subject(),
+    'message' => $email->get_message(),
+    'lang' => $email->get_lang(),
+    'messagetype_nicename' => $email->get_messagetype_nicename($email->get_messagetype()),
+    'system_reserved' => $email->get_system_reserved(),
+    'deleted' => $email->get_deleted(),
+    'timecreated' => date('m/d/Y H:i', $email->get_timecreated()),
+    'timemodified' => date('m/d/Y H:i', $email->get_timemodified()),
+];
 
-//pre-table content
-$content .= "";
+$content = '';
+$content .= $OUTPUT->render_from_template('local_etemplate/view_email_details', $templatedata);
 
-$table->head = ['Name', 'Active', 'Subject', 'Message', 'Language', 'Message Type', 'System Reserved', 'Deleted', 'Time Created', 'Time Modified'];
-$row = new html_table_row();
-$row->cells = array($email->get_name(), $email->get_active(), $email->get_subject(), $email->get_message(), $email->get_lang(), $email->get_messagetype_nicename($email->get_messagetype()), $email->get_system_reserved(), $email->get_deleted(), date('m/d/Y H:i', $email->get_timecreated()), date('m/d/Y H:i', $email->get_timemodified()));
-
-$table->data[] = $row;
-$content .= html_writer::table($table);
-
-//post-table content
+// Post-table content.
 $content .= $OUTPUT->single_button(new moodle_url('/local/etemplate/email_templates.php'), get_string('return_to_templates', 'local_etemplate'));
-
-
-
 
 echo base::page(
     new moodle_url('/local/etemplate/email_templates.php'),
@@ -70,15 +75,13 @@ echo base::page(
     $context
 );
 
-//**********************
+// **********************
 echo $OUTPUT->header();
-//*** DISPLAY HEADER ***
+// *** DISPLAY HEADER ***
 //
 echo $errormessage;
 echo $content;
-//**********************
-//*** DISPLAY FOOTER ***
-//**********************
+// **********************
+// *** DISPLAY FOOTER ***
+// **********************
 echo $OUTPUT->footer();
-
-?>

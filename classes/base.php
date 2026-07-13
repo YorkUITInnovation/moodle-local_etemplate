@@ -24,9 +24,6 @@
 
 namespace local_etemplate;
 
-use local_organization\unit;
-use local_organization\department;
-
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -39,28 +36,42 @@ defined('MOODLE_INTERNAL') || die();
  */
 class base
 {
-
-    // Set constant for buttons
+    // Set constants for buttons.
     const CONTEXT_TONE = 'TONE';
     const CONTEXT_LENGTH = 'LENGTH';
 
-    /**
-     * Creates the Moodle page header
+    /** @var string CDN URL for pdfmake dependency. */
+    private const PDFMAKE_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js';
+
+    /** @var string CDN URL for pdfmake font dependency. */
+    private const PDFMAKE_FONTS_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js';
+
+    /** @var string CDN URL for DataTables bundle used by this plugin. */
+    private const DATATABLES_BUNDLE_JS_URL = 'https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.12.1/af-2.4.0/b-2.2.3/b-colvis-2.2.3/b-html5-2.2.3/b-print-2.2.3/cr-1.5.6/date-1.1.2/fc-4.1.0/fh-3.2.4/kt-2.7.0/r-2.3.0/rg-1.2.0/rr-1.2.8/sc-2.0.7/sb-1.3.4/sp-2.0.2/sl-1.4.0/sr-1.1.1/datatables.min.js';
+
+    /** @var string CDN URL for DataTables stylesheet bundle used by this plugin. */
+    private const DATATABLES_BUNDLE_CSS_URL = 'https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.12.1/af-2.4.0/b-2.2.3/b-colvis-2.2.3/b-html5-2.2.3/b-print-2.2.3/cr-1.5.6/date-1.1.2/fc-4.1.0/fh-3.2.4/kt-2.7.0/r-2.3.0/rg-1.2.0/rr-1.2.8/sc-2.0.7/sb-1.3.4/sp-2.0.2/sl-1.4.0/sr-1.1.1/datatables.min.css';
+
+    /** @var string Component used when loading strings for JS in this plugin. */
+    private const JS_STRINGS_COMPONENT = 'local_cria';
+
+    /** @var string Source component used to fetch string keys for JS. */
+    private const STRING_SOURCE_COMPONENT = 'local_yulearn';
+
+        /**
+         * Creates the Moodle page header.
+         *
      * @param string $url Current page url
      * @param string $pagetitle Page title
      * @param string $pageheading Page heading (Note hard coded to site fullname)
-     * @param array $context The page context (SYSTEM, COURSE, MODULE etc)
+         * @param mixed $context The page context (SYSTEM, COURSE, MODULE etc)
      * @param string $pagelayout The page context (SYSTEM, COURSE, MODULE etc)
      * @return HTML Contains page information and loads all Javascript and CSS
-     * @global \stdClass $CFG
-     * @global \moodle_database $DB
      * @global \moodle_page $PAGE
-     * @global \stdClass $SITE
      */
     public static function page($url, $pagetitle, $pageheading, $context = null, $pagelayout = 'base')
     {
-        global $CFG, $PAGE, $SITE;
-
+                global $PAGE;
 
         $context = \context_system::instance();
 
@@ -69,30 +80,45 @@ class base
         $PAGE->set_heading($pageheading);
         $PAGE->set_pagelayout($pagelayout);
         $PAGE->set_context($context);
-        // We need datatables to work. So we load it from cdn
+        // We need datatables to work. So we load it from cdn.
         // We also load one JS file that initialises all datatables.
-        // This same file is used throughout, including in the blocks
+        // This same file is used throughout, including in the blocks.
         self::loadJQueryJS();
     }
 
+    /**
+     * Load jQuery/DataTables dependencies and language strings.
+     */
     public static function loadJQueryJS()
     {
-        global $CFG, $PAGE;
+        global $PAGE;
+
         $stringman = get_string_manager();
-        $strings = $stringman->load_component_strings('local_yulearn', current_language());
+        $strings = $stringman->load_component_strings(self::STRING_SOURCE_COMPONENT, current_language());
 
         $PAGE->requires->jquery();
         $PAGE->requires->jquery_plugin('ui');
         $PAGE->requires->jquery_plugin('ui-css');
-        $PAGE->requires->js(new \moodle_url('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js'), true);
-        $PAGE->requires->js(new \moodle_url('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js'), true);
-        $PAGE->requires->js(new \moodle_url('https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.12.1/af-2.4.0/b-2.2.3/b-colvis-2.2.3/b-html5-2.2.3/b-print-2.2.3/cr-1.5.6/date-1.1.2/fc-4.1.0/fh-3.2.4/kt-2.7.0/r-2.3.0/rg-1.2.0/rr-1.2.8/sc-2.0.7/sb-1.3.4/sp-2.0.2/sl-1.4.0/sr-1.1.1/datatables.min.js'), true);
-        $PAGE->requires->css(new \moodle_url('https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.12.1/af-2.4.0/b-2.2.3/b-colvis-2.2.3/b-html5-2.2.3/b-print-2.2.3/cr-1.5.6/date-1.1.2/fc-4.1.0/fh-3.2.4/kt-2.7.0/r-2.3.0/rg-1.2.0/rr-1.2.8/sc-2.0.7/sb-1.3.4/sp-2.0.2/sl-1.4.0/sr-1.1.1/datatables.min.css'));
-        $PAGE->requires->strings_for_js(array_keys($strings), 'local_cria');
+        self::load_datatables_dependencies();
+        $PAGE->requires->strings_for_js(array_keys($strings), self::JS_STRINGS_COMPONENT);
     }
 
     /**
-     * Sets filemanager options
+     * Load external JS/CSS dependencies used by plugin tables.
+     */
+    private static function load_datatables_dependencies(): void
+    {
+        global $PAGE;
+
+        $PAGE->requires->js(new \moodle_url(self::PDFMAKE_JS_URL), true);
+        $PAGE->requires->js(new \moodle_url(self::PDFMAKE_FONTS_JS_URL), true);
+        $PAGE->requires->js(new \moodle_url(self::DATATABLES_BUNDLE_JS_URL), true);
+        $PAGE->requires->css(new \moodle_url(self::DATATABLES_BUNDLE_CSS_URL));
+    }
+
+    /**
+     * Sets filemanager options.
+     *
      * @param \stdClass $context
      * @param int $maxfiles
      * @return array
@@ -101,17 +127,24 @@ class base
     public static function getFileManagerOptions($context, $maxfiles = 1)
     {
         global $CFG;
-        return array('subdirs' => 0, 'maxbytes' => $CFG->maxbytes, 'maxfiles' => $maxfiles);
+
+        return ['subdirs' => 0, 'maxbytes' => $CFG->maxbytes, 'maxfiles' => $maxfiles];
     }
 
-
+    /**
+     * Sets editor options.
+     *
+     * @param \stdClass $context
+     * @return array
+     * @global \stdClass $CFG
+     */
     public static function getEditorOptions($context)
     {
         global $CFG;
-        return array('subdirs' => 1, 'maxbytes' => $CFG->maxbytes, 'maxfiles' => -1,
-            'changeformat' => 1, 'context' => $context, 'noclean' => 1, 'trusttext' => 0);
-    }
 
+        return ['subdirs' => 1, 'maxbytes' => $CFG->maxbytes, 'maxfiles' => -1,
+            'changeformat' => 1, 'context' => $context, 'noclean' => 1, 'trusttext' => 0];
+    }
 
     /**
      * Locale-formatted strftime using \IntlDateFormatter (PHP 8.1 compatible)
@@ -297,19 +330,22 @@ class base
      * @return array
      * @throws \dml_exception
      */
-    public static function get_adivsor_roles() {
+    public static function get_advisor_roles() {
         global $DB, $USER;
         // Get all assigned roles for the user
         $advisor_roles = $DB->get_records('local_organization_advisor', ['user_id' => $USER->id]);
 
         $permissions = [];
-        $i = 0;
-        // I need to group all identicle user_context into separate arrays. For example, all DEPARTMENT user_contexts should be in one array
+        // Group all identical user_context into separate arrays. For example, all DEPARTMENT user_contexts should be in one array
         // and all UNIT user_contexts should be in another array
         foreach ($advisor_roles as $role) {
-            $permissions[$role->user_context][$i]['instance_id'] = $role->instance_id;
-            $permissions[$role->user_context][$i]['context'] = $role->user_context;
-            $i++;
+            if (!isset($permissions[$role->user_context])) {
+                $permissions[$role->user_context] = [];
+            }
+            $permissions[$role->user_context][] = [
+                'instance_id' => $role->instance_id,
+                'context' => $role->user_context
+            ];
         }
 
         return $permissions;
@@ -421,6 +457,234 @@ class base
             // DEPRECATED
             //get_string('major', 'local_etemplate') => $major_select
         ];
+    }
+
+    /**
+     * Return unit options filtered to only those the current user is authorized to manage.
+     *
+     * Site admins see all units via get_unit_options(). Non-admins see only the campus/unit
+     * entries covered by their advisor assignments (campus admins get all units in their campus).
+     *
+     * @param int|null $userid  Defaults to $USER->id.
+     * @return array  Selectgroups array suitable for addElement('selectgroups', ...).
+     */
+    public static function get_unit_options_for_user(?int $userid = null): array {
+        global $USER, $DB;
+
+        $userid = $userid ?? (int) $USER->id;
+
+        if (is_siteadmin($userid)) {
+            return self::get_unit_options();
+        }
+
+        $advisor_rows = $DB->get_records('local_organization_advisor', ['user_id' => $userid]);
+        if (empty($advisor_rows)) {
+            return [
+                get_string('campus', 'local_etemplate') => ['' => get_string('select', 'local_etemplate')],
+            ];
+        }
+
+        $campusids = [];
+        $unitids   = [];
+
+        foreach ($advisor_rows as $row) {
+            switch ($row->user_context) {
+                case 'CAMPUS':
+                    $campusids[] = (int) $row->instance_id;
+                    break;
+                case 'UNIT':
+                    $unitids[] = (int) $row->instance_id;
+                    $cid = $DB->get_field('local_organization_unit', 'campus_id', ['id' => $row->instance_id]);
+                    if ($cid) {
+                        $campusids[] = (int) $cid;
+                    }
+                    break;
+                case 'DEPARTMENT':
+                case 'DEPT':
+                    $uid = $DB->get_field('local_organization_dept', 'unit_id', ['id' => $row->instance_id]);
+                    if ($uid) {
+                        $unitids[] = (int) $uid;
+                        $cid = $DB->get_field('local_organization_unit', 'campus_id', ['id' => $uid]);
+                        if ($cid) {
+                            $campusids[] = (int) $cid;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        $campusids = array_values(array_unique($campusids));
+        $unitids   = array_values(array_unique($unitids));
+
+        $campuses = ['' => get_string('select', 'local_etemplate')];
+        if (!empty($campusids)) {
+            [$insql, $inparams] = $DB->get_in_or_equal($campusids, SQL_PARAMS_NAMED, 'cp');
+            foreach ($DB->get_records_select('local_organization_campus', "id $insql", $inparams, 'name', 'id, name') as $c) {
+                $campuses[$c->id . '_CAMPUS'] = $c->name;
+            }
+        }
+
+        $faculties = [];
+        // Campus admins inherit access to all units within their campus.
+        if (!empty($campusids)) {
+            [$insql, $inparams] = $DB->get_in_or_equal($campusids, SQL_PARAMS_NAMED, 'cup');
+            $rows = $DB->get_records_sql(
+                "SELECT ou.id, ou.name, oc.name AS campus
+                   FROM {local_organization_unit} ou
+                   JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+                  WHERE oc.id $insql ORDER BY campus, ou.name",
+                $inparams
+            );
+            foreach ($rows as $f) {
+                $faculties[$f->id . '_UNIT'] = $f->campus . ' / ' . $f->name;
+            }
+        } elseif (!empty($unitids)) {
+            [$insql, $inparams] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'up');
+            $rows = $DB->get_records_sql(
+                "SELECT ou.id, ou.name, oc.name AS campus
+                   FROM {local_organization_unit} ou
+                   JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+                  WHERE ou.id $insql ORDER BY campus, ou.name",
+                $inparams
+            );
+            foreach ($rows as $f) {
+                $faculties[$f->id . '_UNIT'] = $f->campus . ' / ' . $f->name;
+            }
+        }
+
+        return [
+            get_string('campus', 'local_etemplate') => $campuses,
+            get_string('faculty', 'local_etemplate') => $faculties,
+        ];
+    }
+
+    /**
+     * Check whether the specified user's advisor roles grant access to the unit identified
+     * by a form unit value in "id_TYPE" format (e.g. "5_UNIT", "3_CAMPUS", "7_DEPT").
+     *
+     * Hierarchy rules:
+     * - Campus admins have access to all units and departments within their campus.
+     * - Unit admins have access to all departments within their unit.
+     * - Site admins always have access.
+     *
+     * @param string     $unit_value    Unit value in "id_TYPE" format from the template form.
+     * @param array|null $advisor_roles Advisor roles from self::get_advisor_roles(); fetched if null.
+     * @param int|null   $userid        Defaults to $USER->id.
+     * @return bool
+     */
+    /**
+     * Convenience wrapper: check whether the current user has access to a template by its DB id.
+     *
+     * Loads the template record, derives the unit value, then delegates to
+     * user_can_access_unit_value(). Returns false when the template does not exist.
+     *
+     * @param int      $template_id  Primary key of local_et_email.
+     * @param int|null $userid       Defaults to $USER->id.
+     * @return bool
+     */
+    public static function user_can_access_template_id(int $template_id, ?int $userid = null): bool {
+        global $USER, $DB;
+
+        $userid = $userid ?? (int) $USER->id;
+
+        if (is_siteadmin($userid)) {
+            return true;
+        }
+
+        $record = $DB->get_record('local_et_email', ['id' => $template_id], '*', IGNORE_MISSING);
+        if (!$record) {
+            return false;
+        }
+
+        // Build unit value from stored context + unit ID.
+        if (!empty($record->context) && !empty($record->unit)) {
+            $unit_value = $record->unit . '_' . $record->context;
+        } else {
+            // Fallback: derive from campus/faculty shortnames (course-based templates).
+            $unit_value = self::get_unit_value_from_template_data($record) ?? '';
+        }
+
+        return self::user_can_access_unit_value($unit_value, null, $userid);
+    }
+
+    public static function user_can_access_unit_value(string $unit_value, ?array $advisor_roles = null, ?int $userid = null): bool {
+        global $USER, $DB;
+
+        $userid = $userid ?? (int) $USER->id;
+
+        if (is_siteadmin($userid)) {
+            return true;
+        }
+
+        if (empty($unit_value)) {
+            return false;
+        }
+
+        if ($advisor_roles === null) {
+            $advisor_roles = self::get_advisor_roles();
+        }
+
+        if (empty($advisor_roles)) {
+            return false;
+        }
+
+        $parts     = explode('_', $unit_value);
+        $unit_type = strtoupper(end($parts));
+        $unit_id   = (int) $parts[0];
+
+        $campusids = array_column($advisor_roles['CAMPUS'] ?? [], 'instance_id');
+        $unitids   = array_column($advisor_roles['UNIT'] ?? [], 'instance_id');
+        $deptids   = array_merge(
+            array_column($advisor_roles['DEPARTMENT'] ?? [], 'instance_id'),
+            array_column($advisor_roles['DEPT'] ?? [], 'instance_id')
+        );
+
+        switch ($unit_type) {
+            case 'CAMPUS':
+                return in_array($unit_id, $campusids, false);
+
+            case 'UNIT':
+                if (in_array($unit_id, $unitids, false)) {
+                    return true;
+                }
+                // Campus admins inherit access to all units within their campus.
+                if (!empty($campusids)) {
+                    [$insql, $inparams] = $DB->get_in_or_equal($campusids, SQL_PARAMS_NAMED, 'ucid');
+                    if ($DB->record_exists_select('local_organization_unit', "id = :uid AND campus_id $insql",
+                            array_merge(['uid' => $unit_id], $inparams))) {
+                        return true;
+                    }
+                }
+                return false;
+
+            case 'DEPT':
+                if (in_array($unit_id, $deptids, false)) {
+                    return true;
+                }
+                // Unit admins inherit access to departments within their unit.
+                if (!empty($unitids)) {
+                    [$insql, $inparams] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'duid');
+                    if ($DB->record_exists_select('local_organization_dept', "id = :did AND unit_id $insql",
+                            array_merge(['did' => $unit_id], $inparams))) {
+                        return true;
+                    }
+                }
+                // Campus admins inherit access to departments via campus → unit chain.
+                if (!empty($campusids)) {
+                    $dept_unit_id = (int) $DB->get_field('local_organization_dept', 'unit_id', ['id' => $unit_id]);
+                    if ($dept_unit_id) {
+                        [$insql, $inparams] = $DB->get_in_or_equal($campusids, SQL_PARAMS_NAMED, 'dcid');
+                        if ($DB->record_exists_select('local_organization_unit', "id = :duid AND campus_id $insql",
+                                array_merge(['duid' => $dept_unit_id], $inparams))) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+
+            default:
+                return false;
+        }
     }
 
     public static function get_unit_value_from_template_data($formdata) {

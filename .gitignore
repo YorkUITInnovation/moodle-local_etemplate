@@ -10,7 +10,7 @@
 stub/
 
 # GitHub workflows/actions
-.github/
+# .github/
 
 # Build artifacts
 amd/build/
@@ -18,3 +18,5 @@ amd/build/
 # Backup files
 *.bak
 *~
+
+.vscode/

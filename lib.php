@@ -38,17 +38,15 @@ defined('MOODLE_INTERNAL') || die();
  */
 function local_etemplate_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array())
 {
-    global $DB;
-
     if ($context->contextlevel != CONTEXT_SYSTEM) {
         return false;
     }
 
-    $fileAreas = array(
+    $file_areas = [
         'emailtemplate',
-    );
+    ];
 
-    if (!in_array($filearea, $fileAreas)) {
+    if (!in_array($filearea, $file_areas)) {
         return false;
     }
 

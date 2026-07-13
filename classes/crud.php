@@ -35,97 +35,121 @@ defined('MOODLE_INTERNAL') || die();
  */
 abstract class crud
 {
-
-
     /**
-     * /* string
-     **/
+     * Database table name for the current model.
+     *
+     * @var string
+     */
     private $table;
 
     /**
-     * /* int
-     **/
+     * Primary key identifier for the current model.
+     *
+     * @var int
+     */
     private $id;
 
     /**
-     * Get record
+     * Get the current record from the database.
      *
      * @global \moodle_database $DB
-     *
+     * @return \stdClass|false The record object or false if not found.
      */
     public function get_record()
     {
         global $DB;
-        $result = $DB->get_record($this->table, ['id' => $this->id]);
-        return $result;
 
+        return $DB->get_record($this->table, ['id' => $this->id]);
     }
 
     /**
-     * Delete the row
+     * Delete the row from the database.
      *
      * @global \moodle_database $DB
-     *
+     * @return bool True on success.
      */
     public function delete_record()
     {
         global $DB;
-        $DB->delete_records($this->table, ['id' => $this->id]);
+        return (bool)$DB->delete_records($this->table, ['id' => $this->id]);
     }
 
     /**
-     * Insert record into selected table
-     * @param object $data
+     * Insert a record into the database table.
+     *
+     * @param object $data The record to insert.
      * @global \stdClass $USER
      * @global \moodle_database $DB
+     * @return int The ID of the inserted record.
      */
     public function insert_record($data): int
     {
         global $DB, $USER;
 
-        if (!isset($data->timecreated)) {
-            $data->timecreated = time();
-        }
+        self::apply_insert_audit_fields($data, $USER->id);
 
-        if (!isset($data->imemodified)) {
-            $data->timemodified = time();
-        }
-
-        //Set user
-        $data->usermodified = $USER->id;
-
-        $id = $DB->insert_record($this->table, $data);
-
-        return $id;
+        return $DB->insert_record($this->table, $data);
     }
 
     /**
-     * Update record into selected table
-     * @param object $data
+     * Update a record in the database table.
+     *
+     * @param object $data The record to update.
      * @global \stdClass $USER
      * @global \moodle_database $DB
+     * @return int The ID of the updated record.
      */
     public function update_record($data): int
     {
         global $DB, $USER;
 
+        self::apply_update_audit_fields($data, $USER->id);
+
+        return $DB->update_record($this->table, $data);
+    }
+
+    /**
+     * Apply insert audit fields while preserving legacy behavior.
+     *
+     * @param object $data
+     * @param int $userid
+     */
+    private static function apply_insert_audit_fields($data, int $userid): void
+    {
+        if (!isset($data->timecreated)) {
+            $data->timecreated = time();
+        }
+
+        // Keep legacy field check as-is for backward compatibility.
+        if (!isset($data->imemodified)) {
+            $data->timemodified = time();
+        }
+
+        $data->usermodified = $userid;
+    }
+
+    /**
+     * Apply update audit fields while preserving legacy behavior.
+     *
+     * @param object $data
+     * @param int $userid
+     */
+    private static function apply_update_audit_fields($data, int $userid): void
+    {
         if (!isset($data->timemodified)) {
             $data->set_timemodified(time());
         }
 
-        //Set user
-        if (!isset($data->usermodified)){
-            $data->set_usermodified($USER->id);
+        if (!isset($data->usermodified)) {
+            $data->set_usermodified($userid);
         }
-
-        $id = $DB->update_record($this->table, $data);
-
-        return $id;
     }
 
     /**
-     * /* get id
-     **/
+     * Get the primary key identifier for this model.
+     *
+     * @return int The model's ID.
+     */
     public function get_id(): int
     {
         return $this->id;
@@ -141,8 +165,10 @@ abstract class crud
     }
 
     /**
-     * /* get table
-     **/
+     * Get the database table name for this model.
+     *
+     * @return string The table name.
+     */
     public function get_table(): string
     {
         return $this->table;

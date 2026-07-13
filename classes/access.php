@@ -1,9 +1,25 @@
 <?php
-/*
- * Author: Admin User
- * Create Date: 6-01-2024
- * License: LGPL 
- * 
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Legacy model class.
+ *
+ * @package    local_etemplate
+ * @copyright  2026 Your Organization
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_etemplate;
@@ -13,63 +29,71 @@ use local_etemplate\base;
 
 class access extends crud
 {
-
-
     /**
+     * Unique identifier for the access record.
      *
      * @var int
      */
     private $id;
 
     /**
+     * Email template ID this access rule applies to.
      *
      * @var int
      */
     private $emailid;
 
     /**
+     * Context string for the access rule.
      *
      * @var string
      */
     private $context;
 
     /**
+     * Permission value for this access record (0 or 1).
      *
      * @var int
      */
     private $permission;
 
     /**
+     * User ID of the last user to modify this access record.
      *
      * @var int
      */
     private $usermodified;
 
     /**
+     * Unix timestamp when this access record was created.
      *
      * @var int
      */
     private $timecreated;
 
     /**
+     * Human-readable formatted creation time.
      *
      * @var string
      */
     private $timecreated_hr;
 
     /**
+     * Unix timestamp when this access record was last modified.
      *
      * @var int
      */
     private $timemodified;
 
     /**
+     * Human-readable formatted modification time.
      *
      * @var string
      */
     private $timemodified_hr;
 
     /**
+     * Database table name for this model.
      *
      * @var string
      */
@@ -80,9 +104,14 @@ class access extends crud
      *
      *
      */
+    /**
+     * Constructor to initialize access object.
+     *
+     * @param int $id The access ID to load (optional, defaults to 0 for new record).
+     */
     public function __construct($id = 0)
     {
-        global $CFG, $DB, $DB;
+        global $CFG, $DB;
 
         $this->table = 'local_et_access';
 

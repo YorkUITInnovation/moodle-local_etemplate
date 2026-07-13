@@ -48,7 +48,12 @@ if (!$original_template->get_id()) {
     print_error('email_template_not_found', 'local_etemplate', $CFG->wwwroot . '/local/etemplate/email_templates.php');
 }
 
-if ($confirm) {
+// Unit-scope check: non-siteadmins may only clone templates within their assigned scope.
+if (!is_siteadmin($USER->id) && !base::user_can_access_template_id($id)) {
+    print_error('nopermissions', 'error', $CFG->wwwroot . '/local/etemplate/email_templates.php');
+}
+
+if ($confirm && confirm_sesskey()) {
     // Get original template data as a raw database object
     $data = $DB->get_record('local_et_email', ['id' => $id]);
 
@@ -87,7 +92,7 @@ if ($confirm) {
     echo $OUTPUT->header();
     echo $OUTPUT->confirm(
         get_string('confirm_clone_email', 'local_etemplate', $original_template->get_name()),
-        new moodle_url('/local/etemplate/clone_email.php', ['id' => $id, 'confirm' => 1]),
+        new moodle_url('/local/etemplate/clone_email.php', ['id' => $id, 'confirm' => 1, 'sesskey' => sesskey()]),
         new moodle_url('/local/etemplate/email_templates.php')
     );
     echo $OUTPUT->footer();
