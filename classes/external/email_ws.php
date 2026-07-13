@@ -70,6 +70,13 @@ class email_ws extends external_api {
         // Check capability.
         require_capability('local/etemplate:delete', $context);
 
+        // Unit-scope check: non-siteadmins may only delete templates within their assigned scope.
+        if (!is_siteadmin()) {
+            if (!\local_etemplate\base::user_can_access_template_id($params['id'])) {
+                throw new \restricted_context_exception();
+            }
+        }
+
         try {
             $email = new \local_etemplate\email($params['id']);
             $email->delete_email();

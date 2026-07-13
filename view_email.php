@@ -27,6 +27,8 @@ require_once('../../config.php');
 use local_etemplate\base;
 use local_etemplate\email;
 
+require_login(1, false);
+
 $id = required_param('id', PARAM_INT);
 
 $errmsg = optional_param('errormsg', '', PARAM_TEXT);
@@ -40,6 +42,9 @@ if (!empty($errmsg)) {
 
 $context = context_system::instance();
 $PAGE->set_context($context);
+
+require_capability('local/etemplate:view', $context);
+
 $page_header = get_string('email_template', 'local_etemplate');
 $email = new email($id);
 

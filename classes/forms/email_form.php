@@ -58,8 +58,8 @@ class email_form extends \moodleform
         $context = \context_system::instance();
 
         $messageTypes = \local_etemplate\email::get_messagetype_nicename();
-        // Prepare all select options which will be divided by groups
-        $unit_select = base::get_unit_options();
+        // Prepare unit select options scoped to the current user's advisor assignments.
+        $unit_select = base::get_unit_options_for_user();
 
         // Get campus dropdown data for campus_only field
         $campus_sql = "SELECT id, name, shortname FROM {local_organization_campus} ORDER BY name";

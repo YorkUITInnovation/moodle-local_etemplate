@@ -44,6 +44,11 @@ if (!$template->get_id()) {
     print_error('email_template_not_found', 'local_etemplate', $CFG->wwwroot . '/local/etemplate/email_templates.php');
 }
 
+// Unit-scope check: non-siteadmins may only delete/undelete templates within their assigned scope.
+if (!is_siteadmin($USER->id) && !base::user_can_access_template_id($id)) {
+    print_error('nopermissions', 'error', $CFG->wwwroot . '/local/etemplate/email_templates.php');
+}
+
 if ($undelete) {
     $capability = 'local/etemplate:undelete';
     $page_header = get_string('undelete');

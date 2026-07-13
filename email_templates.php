@@ -56,6 +56,10 @@ $formdata->active = $active;
 
 $mform = new email_templates_filter_form(null, ['formdata' => $formdata]);
 
+// Initialise filter variables before the conditional branches so they are always defined.
+$term_filter = '';
+$campus_id = 0;
+
 if ($mform->is_cancelled()) {
     // Handle form cancel operation, if cancel button is present.
     redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
@@ -77,145 +81,196 @@ if ($active == 0) {
     $table->sortable(true, 'name', SORT_ASC);
 }
 
-$params = [];
+$params = [
+    'active' => $active,
+];
 
 // Define the SQL query to fetch data.
 // Retrieve campus id from form data when submit.
 
 // CK Oct2025: Deprecate department field in favor of context/unit structure.
 $fields = "e.id,
-    e.parent_id,
     e.name,
-    e.subject,
     e.lang,
-    e.message,
-    e.unit,
-    e.context,
     e.active,
-    e.message_type,
-    e.system_reserved,
-    e.revision,
-    e.deleted,
-    e.faculty,
-    e.course,
-    e.coursenumber,
-    e.hascustommessage,
-    e.template_type,
-    e.usermodified,
-    FROM_UNIXTIME(e.timecreated, '%Y-%m-%d %H:%i') as timecreated,
-    FROM_UNIXTIME(e.timemodified, '%Y-%m-%d %H:%i') as timemodified,
-    Case
-    When e.message_type = 0
-    Then 'Low Grade'
-    When e.message_type = 1
-    Then 'Missed assignment'
-    When e.message_type = 2
-    Then 'Missed Test/Quiz'
-    When e.message_type = 3
-    Then 'Catch all'
-    End As message_type_name,
-    Case
-        When e.context = 'CAMPUS'
-        Then (Select
-                 id
-             From
-                 {local_organization_campus}
-             Where
-                 id = e.unit)
-        When e.context = 'UNIT'
-        Then (Select
-                 id
-             From
-                 {local_organization_unit}
-             Where
-                 id = e.unit)
-        When e.context = 'DEPT'
-        Then (Select
-                 id
-             From
-                 {local_organization_dept}
-             Where
-                 id = e.unit)
-    End As organization_id,
-     Case
-        When e.template_type = 'campus_course'
-        Then (
+    FROM_UNIXTIME(e.timecreated, '%Y-%m-%d %H:%i') AS timecreated,
+    FROM_UNIXTIME(e.timemodified, '%Y-%m-%d %H:%i') AS timemodified,
+    CASE
+        WHEN e.message_type = 0 THEN 'Low Grade'
+        WHEN e.message_type = 1 THEN 'Missed assignment'
+        WHEN e.message_type = 2 THEN 'Missed Test/Quiz'
+        WHEN e.message_type = 3 THEN 'Catch all'
+    END AS message_type_name,
+    CASE
+        WHEN e.template_type = 'campus_course' THEN (
             CASE
-                WHEN e.department IS NOT NULL AND e.department != '' THEN (
-                    SELECT CONCAT(c.name, '/', u.name, '/', d.name, '/Course based alert')
-                    FROM {local_organization_dept} d
-                    JOIN {local_organization_unit} u ON u.id = d.unit_id
-                    JOIN {local_organization_campus} c ON c.id = u.campus_id
-                    WHERE d.name = e.department AND u.shortname = e.faculty AND c.shortname = e.campus
-                )
-                WHEN e.faculty IS NOT NULL AND e.faculty != '' THEN (
-                    SELECT CONCAT(c.name, '/', u.name, '/Course based alert')
-                    FROM {local_organization_unit} u
-                    JOIN {local_organization_campus} c ON c.id = u.campus_id
-                    WHERE u.shortname = e.faculty AND c.shortname = e.campus
-                )
-                WHEN e.campus IS NOT NULL AND e.campus != '' THEN (
-                    SELECT CONCAT(c.name, '/Course based alert')
-                    FROM {local_organization_campus} c
-                    WHERE c.shortname = e.campus
-                )
+                WHEN e.department IS NOT NULL AND e.department != '' THEN CONCAT(coursecampus.name, '/', courseunit.name, '/', coursedept.name, '/Course based alert')
+                WHEN e.faculty IS NOT NULL AND e.faculty != '' THEN CONCAT(coursecampus.name, '/', courseunit.name, '/Course based alert')
+                WHEN e.campus IS NOT NULL AND e.campus != '' THEN CONCAT(coursecampus.name, '/Course based alert')
                 ELSE 'Course based alert'
             END
         )
-        When e.context = 'CAMPUS'
-        Then (Select
-                 name
-             From
-                 {local_organization_campus}
-             Where
-                 id = e.unit)
-        When e.context = 'UNIT'
-        Then (Select
-   concat(c.name, '/', unit.name) as name
-From
-    {local_organization_campus} c Inner Join
-    {local_organization_unit} unit On c.id = unit.campus_id
-             Where
-                 unit.id = e.unit)
-        When e.context = 'DEPT'
-        Then (Select
-    Concat(ocampus.name, '/', ounit.name, '/', odept.name) As name
-From
-    {local_organization_campus} ocampus Inner Join
-    {local_organization_unit} ounit On ocampus.id = ounit.campus_id Inner Join
-    {local_organization_dept} odept On odept.unit_id = ounit.id
-             Where
-                 odept.id = e.unit)
-    End As department_name";
+        WHEN e.context = 'CAMPUS' THEN campusctx.name
+        WHEN e.context = 'UNIT' THEN CONCAT(unitcampus.name, '/', unitctx.name)
+        WHEN e.context = 'DEPT' THEN CONCAT(deptcampus.name, '/', deptunit.name, '/', deptctx.name)
+    END AS department_name";
 
-$sql = 'e.deleted = 0 ';
-$sql .= 'AND e.active = ' . $active;
+$from = "{local_et_email} e
+    LEFT JOIN {local_organization_campus} campusctx
+        ON e.context = 'CAMPUS' AND campusctx.id = e.unit
+    LEFT JOIN {local_organization_unit} unitctx
+        ON e.context = 'UNIT' AND unitctx.id = e.unit
+    LEFT JOIN {local_organization_campus} unitcampus
+        ON unitcampus.id = unitctx.campus_id
+    LEFT JOIN {local_organization_dept} deptctx
+        ON e.context = 'DEPT' AND deptctx.id = e.unit
+    LEFT JOIN {local_organization_unit} deptunit
+        ON deptunit.id = deptctx.unit_id
+    LEFT JOIN {local_organization_campus} deptcampus
+        ON deptcampus.id = deptunit.campus_id
+    LEFT JOIN {local_organization_campus} coursecampus
+        ON e.template_type = 'campus_course'
+        AND e.campus IS NOT NULL
+        AND e.campus != ''
+        AND coursecampus.shortname = e.campus
+    LEFT JOIN {local_organization_unit} courseunit
+        ON e.template_type = 'campus_course'
+        AND e.faculty IS NOT NULL
+        AND e.faculty != ''
+        AND courseunit.shortname = e.faculty
+        AND courseunit.campus_id = coursecampus.id
+    LEFT JOIN {local_organization_dept} coursedept
+        ON e.template_type = 'campus_course'
+        AND e.department IS NOT NULL
+        AND e.department != ''
+        AND coursedept.name = e.department
+        AND coursedept.unit_id = courseunit.id";
 
-$advisor_roles = base::get_adivsor_roles();
+$sql = 'e.deleted = 0 AND e.active = :active';
 
-$where_clause = '';
+$advisor_roles = base::get_advisor_roles();
+
 if ($advisor_roles) {
     $conditions = [];
+    $paramindex = 0;
+    $campusids = [];
+    $unitids = [];
+    $deptids = [];
 
     foreach ($advisor_roles as $context => $instances) {
-        $instance_ids = array_column($instances, 'instance_id');
-        // Convert DEPARTMENT to DEPT.
-        if ($context == 'DEPARTMENT') {
-            $context = 'DEPT';
+        $instanceids = array_column($instances, 'instance_id');
+        if (empty($instanceids)) {
+            continue;
         }
-        $conditions[] = "(unit IN (" . implode(',', $instance_ids) . ") AND context = '$context')";
+
+        switch ($context) {
+            case 'CAMPUS':
+                $campusids = array_merge($campusids, $instanceids);
+                break;
+            case 'UNIT':
+                $unitids = array_merge($unitids, $instanceids);
+                break;
+            case 'DEPARTMENT':
+            case 'DEPT':
+                $deptids = array_merge($deptids, $instanceids);
+                break;
+        }
     }
 
-    $where_clause = ' AND (' . implode(' OR ', $conditions) . ')';
+    $campusids = array_values(array_unique($campusids));
+    $unitids = array_values(array_unique($unitids));
+    $deptids = array_values(array_unique($deptids));
 
-    $sql .= $where_clause;
+    $campusshortnames = [];
+    $facultyshortnames = [];
+    $deptshortnames = [];
+
+    $add_in_condition = static function(string $field, array $values, string $prefix, array &$params, array &$conditions, int &$paramindex): void {
+        if (empty($values)) {
+            return;
+        }
+
+        $placeholders = [];
+        foreach ($values as $value) {
+            $paramkey = $prefix . '_' . $paramindex;
+            $params[$paramkey] = $value;
+            $placeholders[] = ':' . $paramkey;
+            $paramindex++;
+        }
+
+        $conditions[] = $field . ' IN (' . implode(', ', $placeholders) . ')';
+    };
+
+    if (!empty($campusids)) {
+        [$insql, $inparams] = $DB->get_in_or_equal($campusids, SQL_PARAMS_NAMED, 'campusscope');
+        $campusrecords = $DB->get_records_select_menu('local_organization_campus', 'id ' . $insql, $inparams, '', 'id, shortname');
+        $campusshortnames = array_values(array_filter($campusrecords));
+    }
+
+    if (!empty($unitids)) {
+        [$insql, $inparams] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'unitscope');
+        $unitrecords = $DB->get_records_sql(
+            "SELECT ou.id, ou.shortname AS facultyshortname, oc.shortname AS campusshortname
+               FROM {local_organization_unit} ou
+               JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+              WHERE ou.id $insql",
+            $inparams
+        );
+
+        foreach ($unitrecords as $unitrecord) {
+            $facultyshortnames[] = $unitrecord->facultyshortname;
+            $campusshortnames[] = $unitrecord->campusshortname;
+        }
+    }
+
+    if (!empty($deptids)) {
+        [$insql, $inparams] = $DB->get_in_or_equal($deptids, SQL_PARAMS_NAMED, 'deptscope');
+        $deptrecords = $DB->get_records_sql(
+            "SELECT od.id,
+                    od.shortname AS deptshortname,
+                    ou.shortname AS facultyshortname,
+                    oc.shortname AS campusshortname
+               FROM {local_organization_dept} od
+               JOIN {local_organization_unit} ou ON ou.id = od.unit_id
+               JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+              WHERE od.id $insql",
+            $inparams
+        );
+
+        foreach ($deptrecords as $deptrecord) {
+            $deptshortnames[] = $deptrecord->deptshortname;
+            $facultyshortnames[] = $deptrecord->facultyshortname;
+            $campusshortnames[] = $deptrecord->campusshortname;
+        }
+    }
+
+    $campusshortnames = array_values(array_unique(array_filter($campusshortnames)));
+    $facultyshortnames = array_values(array_unique(array_filter($facultyshortnames)));
+    $deptshortnames = array_values(array_unique(array_filter($deptshortnames)));
+
+    $add_in_condition('campusctx.id', $campusids, 'campusexact', $params, $conditions, $paramindex);
+    $add_in_condition('unitctx.id', $unitids, 'unitexact', $params, $conditions, $paramindex);
+    $add_in_condition('deptctx.id', $deptids, 'deptexact', $params, $conditions, $paramindex);
+
+    $add_in_condition('unitctx.campus_id', $campusids, 'campusunit', $params, $conditions, $paramindex);
+    $add_in_condition('deptunit.campus_id', $campusids, 'campusdept', $params, $conditions, $paramindex);
+    $add_in_condition('deptctx.unit_id', $unitids, 'unitdept', $params, $conditions, $paramindex);
+
+    $add_in_condition('e.campus', $campusshortnames, 'campusshort', $params, $conditions, $paramindex);
+    $add_in_condition('e.faculty', $facultyshortnames, 'facultyshort', $params, $conditions, $paramindex);
+    $add_in_condition('e.department', $deptshortnames, 'deptshort', $params, $conditions, $paramindex);
+
+    if (!empty($conditions)) {
+        $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
+    }
 }
 
 if (!empty($term_filter)) {
-    $sql .= " AND ((LOWER(e.name) LIKE '%$term_filter%'))";
+    $sql .= ' AND ' . $DB->sql_like('e.name', ':term_filter', false);
+    $params['term_filter'] = '%' . $DB->sql_like_escape($term_filter) . '%';
 }
 // Define the SQL query to fetch data.
-$table->set_sql($fields, '{local_et_email} e', $sql);
+$table->set_sql($fields, $from, $sql, $params);
 
 // Define the base URL for the table.
 $table->define_baseurl(new moodle_url('/local/etemplate/email_templates.php'));

@@ -726,9 +726,8 @@ class email extends crud
         );
 
         //build replacement info
-        $unique_matches = array();
         foreach ($textreplace as $key => $value) {
-            if (strpos($baseemail, $value) !== false && !isset($unique_matches[$value])) {
+            if ((strpos($baseemail, $value) !== false || strpos($basesubject, $value) !== false)) {
                 // Perform action for each unique match found
                 switch ($key) {
                     case 0:
@@ -776,13 +775,19 @@ class email extends crud
                         break;
                     case 3:
                         //facultyname action
+                        $facultyname = '';
+                        if ($student_record) {
+                            $facfield = $DB->get_record('user_info_field', ['shortname' => 'ldapfaculty'], 'id');
+                            if ($facfield) {
+                                $facdata = $DB->get_record('user_info_data', ['userid' => $student_record->id, 'fieldid' => $facfield->id], 'data');
+                                $facultyname = $facdata ? $facdata->data : '';
+                            }
+                        }
                         $basesubject = str_replace('[facultyname]', $facultyname, $basesubject);
                         $baseemail = str_replace('[facultyname]', $facultyname, $baseemail);
                         break;
                     case 4:
-                        //contactunit action
-//                        $basesubject = str_replace('[contactunit]', $student_record->firstname, $basesubject);
-//                        $baseemail = str_replace('[contactunit]', $student_record->firstname, $baseemail);
+                        //contactunit action - not resolvable in this context; leave placeholder as-is
                         break;
                     case 5:
                         //Student first name action
@@ -813,7 +818,7 @@ class email extends crud
      * @param $teacherid
      * @return \stClass
      */
-    public static function replace_message_placeholders($baseemail, $basesubject, $courseid, $student_record, $teacherid, $grade = null, $assignment_title = null, $custommessage = null)
+    public static function replace_message_placeholders($baseemail, $basesubject, $courseid, $student_record, $teacherid, $grade = null, $assignment_title = null, $custommessage = null, $contactunit = null)
     {
         global $DB;
 
@@ -832,9 +837,8 @@ class email extends crud
         );
 
         //build replacement info
-        $unique_matches = array();
         foreach ($textreplace as $key => $value) {
-            if (strpos($baseemail, $value) !== false && !isset($unique_matches[$value])) {
+            if ((strpos($baseemail, $value) !== false || strpos($basesubject, $value) !== false)) {
                 // Perform action for each unique match found
                 switch ($key) {
                     case 0:
@@ -881,14 +885,14 @@ class email extends crud
                         }
                         break;
                     case 3:
-                        //facultyname action
-                        $basesubject = str_replace('[facultyname]', $facultyname, $basesubject);
-                        $baseemail = str_replace('[facultyname]', $facultyname, $baseemail);
+                        //facultyname action - not resolvable in this context; leave placeholder as-is
                         break;
                     case 4:
                         //contactunit action
-                        $basesubject = str_replace('[contactunit]', $student_record->firstname, $basesubject);
-                        $baseemail = str_replace('[contactunit]', $student_record->firstname, $baseemail);
+                        if (!is_null($contactunit)) {
+                            $basesubject = str_replace('[contactunit]', $contactunit, $basesubject);
+                            $baseemail = str_replace('[contactunit]', $contactunit, $baseemail);
+                        }
                         break;
                     case 5:
                         //Student first name action
@@ -896,19 +900,25 @@ class email extends crud
                         $baseemail = str_replace('[firstname]', $student_record->firstname, $baseemail);
                         break;
                     case 6:
-                        //Student first name action
-                        $basesubject = str_replace('[assignmenttitle]', $assignment_title, $basesubject);
-                        $baseemail = str_replace('[assignmenttitle]', $assignment_title, $baseemail);
+                        //assignmenttitle action
+                        if (!is_null($assignment_title)) {
+                            $basesubject = str_replace('[assignmenttitle]', $assignment_title, $basesubject);
+                            $baseemail = str_replace('[assignmenttitle]', $assignment_title, $baseemail);
+                        }
                         break;
                     case 7:
-                        //Student first name action
-                        $basesubject = str_replace('[grade]', $grade, $basesubject);
-                        $baseemail = str_replace('[grade]', $grade, $baseemail);
+                        //grade action
+                        if (!is_null($grade)) {
+                            $basesubject = str_replace('[grade]', $grade, $basesubject);
+                            $baseemail = str_replace('[grade]', $grade, $baseemail);
+                        }
                         break;
                     case 8:
                         // custommessage action
-                        $basesubject = str_replace('[custommessage]', $custommessage, $basesubject);
-                        $baseemail = str_replace('[custommessage]', $custommessage, $baseemail);
+                        if (!is_null($custommessage)) {
+                            $basesubject = str_replace('[custommessage]', $custommessage, $basesubject);
+                            $baseemail = str_replace('[custommessage]', $custommessage, $baseemail);
+                        }
                         break;
                 }
             }
