@@ -57,6 +57,7 @@ $string['exam'] = 'Missed Exam';
 $string['missed_assignment'] = 'Missed Assignment';
 $string['missed_exam'] = 'Missed Test/Quiz';
 $string['low_grade'] = 'Low grade';
+$string['commendation'] = 'Commendation';
 
 $string['faculty'] = 'Faculty';
 $string['filter'] = 'Filter';

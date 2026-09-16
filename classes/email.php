@@ -49,6 +49,7 @@ class email extends crud
     const MESSAGE_TYPE_EXAM = 2;
     const MESSAGE_TYPE_CATCHALL = 3;
     const MESSAGE_TYPE_SIGNATURE = 4;
+    const MESSAGE_TYPE_COMMENDATION = 5;
 
     /**
      * Unique identifier for the email template.
@@ -465,6 +466,10 @@ class email extends crud
             ),
             email::MESSAGE_TYPE_SIGNATURE => get_string(
                 'internal',
+                'local_etemplate'
+            ),
+            email::MESSAGE_TYPE_COMMENDATION => get_string(
+                'commendation',
                 'local_etemplate'
             )
         ];
