@@ -97,9 +97,11 @@ $fields = "e.id,
     FROM_UNIXTIME(e.timemodified, '%Y-%m-%d %H:%i') AS timemodified,
     CASE
         WHEN e.message_type = 0 THEN 'Low Grade'
-        WHEN e.message_type = 1 THEN 'Missed assignment'
+        WHEN e.message_type = 1 THEN 'Missed Assignment'
         WHEN e.message_type = 2 THEN 'Missed Test/Quiz'
-        WHEN e.message_type = 3 THEN 'Catch all'
+        WHEN e.message_type = 3 THEN 'Catch All'
+        WHEN e.message_type = 4 THEN 'Signature'
+        WHEN e.message_type = 5 THEN 'Commendation'
     END AS message_type_name,
     CASE
         WHEN e.template_type = 'campus_course' THEN (
