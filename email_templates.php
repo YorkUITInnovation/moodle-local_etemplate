@@ -214,49 +214,61 @@ if ($advisor_roles) {
     }
 
     if (!empty($unitids)) {
-        [$insql, $inparams] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'unitscope');
-        $unitrecords = $DB->get_records_sql(
-            "SELECT ou.id, ou.shortname AS facultyshortname, oc.shortname AS campusshortname
-               FROM {local_organization_unit} ou
-               JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
-              WHERE ou.id $insql",
-            $inparams
-        );
+         [$insql, $inparams] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'unitscope');
+         $unitrecords = $DB->get_records_sql(
+             "SELECT ou.id, ou.shortname AS facultyshortname, oc.shortname AS campusshortname, oc.id AS campusid
+                FROM {local_organization_unit} ou
+                JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+               WHERE ou.id $insql",
+             $inparams
+         );
 
-        foreach ($unitrecords as $unitrecord) {
-            $facultyshortnames[] = $unitrecord->facultyshortname;
-            $campusshortnames[] = $unitrecord->campusshortname;
-        }
-    }
+         foreach ($unitrecords as $unitrecord) {
+             $facultyshortnames[] = $unitrecord->facultyshortname;
+             // Only add parent campus shortname if user is directly assigned to CAMPUS scope.
+             // Unit-assigned users should only see unit-level templates, not campus-wide ones.
+             if (!empty($campusids) && in_array($unitrecord->campusid, $campusids)) {
+                 $campusshortnames[] = $unitrecord->campusshortname;
+             }
+         }
+     }
 
     if (!empty($deptids)) {
-        [$insql, $inparams] = $DB->get_in_or_equal($deptids, SQL_PARAMS_NAMED, 'deptscope');
-        $deptrecords = $DB->get_records_sql(
-            "SELECT od.id,
-                    od.shortname AS deptshortname,
-                    ou.shortname AS facultyshortname,
-                    ou.id AS unitid,
-                    oc.id AS campusid,
-                    oc.shortname AS campusshortname
-               FROM {local_organization_dept} od
-               JOIN {local_organization_unit} ou ON ou.id = od.unit_id
-               JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
-              WHERE od.id $insql",
-            $inparams
-        );
+         [$insql, $inparams] = $DB->get_in_or_equal($deptids, SQL_PARAMS_NAMED, 'deptscope');
+         $deptrecords = $DB->get_records_sql(
+             "SELECT od.id,
+                     od.shortname AS deptshortname,
+                     ou.shortname AS facultyshortname,
+                     ou.id AS unitid,
+                     oc.id AS campusid,
+                     oc.shortname AS campusshortname
+                FROM {local_organization_dept} od
+                JOIN {local_organization_unit} ou ON ou.id = od.unit_id
+                JOIN {local_organization_campus} oc ON oc.id = ou.campus_id
+               WHERE od.id $insql",
+             $inparams
+         );
 
-        foreach ($deptrecords as $deptrecord) {
-            $deptshortnames[] = $deptrecord->deptshortname;
-            $facultyshortnames[] = $deptrecord->facultyshortname;
-            $campusshortnames[] = $deptrecord->campusshortname;
-            if (!empty($deptrecord->unitid)) {
-                $derivedunitids[] = (int) $deptrecord->unitid;
-            }
-            if (!empty($deptrecord->campusid)) {
-                $derivedcampusids[] = (int) $deptrecord->campusid;
-            }
-        }
-    }
+         foreach ($deptrecords as $deptrecord) {
+             $deptshortnames[] = $deptrecord->deptshortname;
+             // Only add parent faculty/unit shortname if user is directly assigned to UNIT scope.
+             // Dept-assigned users should only see dept-level templates.
+             if (!empty($unitids) && in_array($deptrecord->unitid, $unitids)) {
+                 $facultyshortnames[] = $deptrecord->facultyshortname;
+             }
+             // Only add parent campus shortname if user is directly assigned to CAMPUS scope.
+             // Dept-assigned users should not see campus-wide templates.
+             if (!empty($campusids) && in_array($deptrecord->campusid, $campusids)) {
+                 $campusshortnames[] = $deptrecord->campusshortname;
+             }
+             if (!empty($deptrecord->unitid)) {
+                 $derivedunitids[] = (int) $deptrecord->unitid;
+             }
+             if (!empty($deptrecord->campusid)) {
+                 $derivedcampusids[] = (int) $deptrecord->campusid;
+             }
+         }
+     }
 
     $unitids = array_values(array_unique(array_merge($unitids, $derivedunitids)));
     $campusids = array_values(array_unique(array_merge($campusids, $derivedcampusids)));
