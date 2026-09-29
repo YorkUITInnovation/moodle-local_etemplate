@@ -270,19 +270,26 @@ if ($advisor_roles) {
          }
      }
 
+    // Keep track of directly-assigned IDs separately from derived IDs
+    $direct_campusids = $campusids;
+    $direct_unitids = $unitids;
+    $direct_deptids = $deptids;
+
     $unitids = array_values(array_unique(array_merge($unitids, $derivedunitids)));
     $campusids = array_values(array_unique(array_merge($campusids, $derivedcampusids)));
     $campusshortnames = array_values(array_unique(array_filter($campusshortnames)));
     $facultyshortnames = array_values(array_unique(array_filter($facultyshortnames)));
     $deptshortnames = array_values(array_unique(array_filter($deptshortnames)));
 
-    $add_in_condition('campusctx.id', $campusids, 'campusexact', $params, $conditions, $paramindex);
-    $add_in_condition('unitctx.id', $unitids, 'unitexact', $params, $conditions, $paramindex);
-    $add_in_condition('deptctx.id', $deptids, 'deptexact', $params, $conditions, $paramindex);
+    $add_in_condition('campusctx.id', $direct_campusids, 'campusexact', $params, $conditions, $paramindex);
+    $add_in_condition('unitctx.id', $direct_unitids, 'unitexact', $params, $conditions, $paramindex);
+    $add_in_condition('deptctx.id', $direct_deptids, 'deptexact', $params, $conditions, $paramindex);
 
-    $add_in_condition('unitctx.campus_id', $campusids, 'campusunit', $params, $conditions, $paramindex);
-    $add_in_condition('deptunit.campus_id', $campusids, 'campusdept', $params, $conditions, $paramindex);
-    $add_in_condition('deptctx.unit_id', $unitids, 'unitdept', $params, $conditions, $paramindex);
+    // Only show UNIT templates in user's campus if they have direct CAMPUS assignment
+    // This prevents UNIT-assigned users from seeing all units in their parent campus
+    $add_in_condition('unitctx.campus_id', $direct_campusids, 'campusunit', $params, $conditions, $paramindex);
+    $add_in_condition('deptunit.campus_id', $direct_campusids, 'campusdept', $params, $conditions, $paramindex);
+    $add_in_condition('deptctx.unit_id', $direct_unitids, 'unitdept', $params, $conditions, $paramindex);
 
     $add_in_condition('e.campus', $campusshortnames, 'campusshort', $params, $conditions, $paramindex);
     $add_in_condition('e.faculty', $facultyshortnames, 'facultyshort', $params, $conditions, $paramindex);
