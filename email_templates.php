@@ -275,7 +275,8 @@ if (!empty($term_filter)) {
 $table->set_sql($fields, $from, $sql, $params);
 
 // Define the base URL for the table.
-$table->define_baseurl(new moodle_url('/local/etemplate/email_templates.php'));
+// Include active and search term filters in the base URL for pagination to work correctly.
+$table->define_baseurl(new moodle_url('/local/etemplate/email_templates.php', ['active' => $active, 'q' => $term]));
 
 base::page(
     new moodle_url('/local/etemplate/email_templates.php'),
