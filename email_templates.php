@@ -108,7 +108,7 @@ $fields = "e.id,
     CASE
         WHEN e.template_type = 'campus_course' THEN (
             CASE
-                WHEN e.department IS NOT NULL AND e.department != '' THEN CONCAT(coursecampus.name, '/', courseunit.name, '/', coursedept.name, '/Course based alert')
+                WHEN e.course IS NOT NULL AND e.course != '' THEN CONCAT(coursecampus.name, '/', courseunit.name, '/', coursedept.name, '/Course based alert')
                 WHEN e.faculty IS NOT NULL AND e.faculty != '' THEN CONCAT(coursecampus.name, '/', courseunit.name, '/Course based alert')
                 WHEN e.campus IS NOT NULL AND e.campus != '' THEN CONCAT(coursecampus.name, '/Course based alert')
                 ELSE 'Course based alert'
@@ -145,9 +145,9 @@ $from = "{local_et_email} e
         AND courseunit.campus_id = coursecampus.id
     LEFT JOIN {local_organization_dept} coursedept
         ON e.template_type = 'campus_course'
-        AND e.department IS NOT NULL
-        AND e.department != ''
-        AND coursedept.name = e.department
+        AND e.course IS NOT NULL
+        AND e.course != ''
+        AND coursedept.shortname = e.course
         AND coursedept.unit_id = courseunit.id";
 
 $sql = 'e.deleted = 0 AND e.active = :active';
@@ -274,7 +274,7 @@ if ($advisor_roles) {
 
     $add_in_condition('e.campus', $campusshortnames, 'campusshort', $params, $conditions, $paramindex);
     $add_in_condition('e.faculty', $facultyshortnames, 'facultyshort', $params, $conditions, $paramindex);
-    $add_in_condition('e.department', $deptshortnames, 'deptshort', $params, $conditions, $paramindex);
+    $add_in_condition('e.course', $deptshortnames, 'deptshort', $params, $conditions, $paramindex);
 
     if (!empty($conditions)) {
         $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
