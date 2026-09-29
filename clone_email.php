@@ -29,14 +29,21 @@ use local_etemplate\email;
 
 require_login(1, false);
 
-global $CFG, $DB, $USER;
+global $CFG, $DB, $USER, $PAGE, $OUTPUT;
+
+/** @var moodle_page $PAGE */
+$PAGE = $GLOBALS['PAGE'];
+/** @var core_renderer $OUTPUT */
+$OUTPUT = $GLOBALS['OUTPUT'];
 
 $id = required_param('id', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
+$active = optional_param('active', 1, PARAM_INT);
+$q = optional_param('q', '', PARAM_TEXT);
 
 $context = context_system::instance();
 $PAGE->set_context($context);
-$PAGE->set_url('/local/etemplate/clone_email.php', ['id' => $id]);
+$PAGE->set_url('/local/etemplate/clone_email.php', ['id' => $id, 'active' => $active, 'q' => $q]);
 
 // Capability check
 if (!has_capability('local/etemplate:create', $context)) {
@@ -78,7 +85,11 @@ if ($confirm && confirm_sesskey()) {
         \core\notification::error(get_string('clone_failed', 'local_etemplate'));
     }
 
-    redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
+    $redirecturl = new moodle_url('/local/etemplate/email_templates.php', ['active' => $active]);
+    if (!empty($q)) {
+        $redirecturl->param('q', $q);
+    }
+    redirect($redirecturl);
 
 } else {
     $page_header = get_string('clone_email_template', 'local_etemplate');
@@ -92,8 +103,14 @@ if ($confirm && confirm_sesskey()) {
     echo $OUTPUT->header();
     echo $OUTPUT->confirm(
         get_string('confirm_clone_email', 'local_etemplate', $original_template->get_name()),
-        new moodle_url('/local/etemplate/clone_email.php', ['id' => $id, 'confirm' => 1, 'sesskey' => sesskey()]),
-        new moodle_url('/local/etemplate/email_templates.php')
+        new moodle_url('/local/etemplate/clone_email.php', [
+            'id' => $id,
+            'confirm' => 1,
+            'sesskey' => sesskey(),
+            'active' => $active,
+            'q' => $q,
+        ]),
+        new moodle_url('/local/etemplate/email_templates.php', ['active' => $active, 'q' => $q])
     );
     echo $OUTPUT->footer();
 }

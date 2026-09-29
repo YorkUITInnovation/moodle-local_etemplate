@@ -73,6 +73,8 @@ if ($mform->is_cancelled()) {
 }
 
 $table = new email_table('local_etemplate_email_table');
+$table->current_active = $active;
+$table->current_search = $term;
 
 // If viewing inactive templates, sort by time modified descending.
 if ($active == 0) {

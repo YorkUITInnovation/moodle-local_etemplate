@@ -47,6 +47,8 @@ class email_table extends \table_sql
     protected $show_view_button = false;
     protected $show_view_system_reserved_button = false;
     protected $show_clone_button = false;
+    public int $current_active = 1;
+    public string $current_search = '';
 
     /**
      * unit_table constructor.
@@ -127,7 +129,11 @@ class email_table extends \table_sql
 
         $actions = [
             'edit_url' => $CFG->wwwroot . '/local/etemplate/edit_email.php?id=' . $values->id,
-            'clone_url' => $CFG->wwwroot . '/local/etemplate/clone_email.php?id=' . $values->id,
+            'clone_url' => (new \moodle_url('/local/etemplate/clone_email.php', [
+                'id' => $values->id,
+                'active' => $this->current_active,
+                'q' => $this->current_search,
+            ]))->out(false),
             'id' => $values->id,
             'user_id' => $USER->id,
             'name' => $values->name,
