@@ -160,6 +160,8 @@ if ($advisor_roles) {
     $campusids = [];
     $unitids = [];
     $deptids = [];
+    $derivedcampusids = [];
+    $derivedunitids = [];
 
     foreach ($advisor_roles as $context => $instances) {
         $instanceids = array_column($instances, 'instance_id');
@@ -233,6 +235,8 @@ if ($advisor_roles) {
             "SELECT od.id,
                     od.shortname AS deptshortname,
                     ou.shortname AS facultyshortname,
+                    ou.id AS unitid,
+                    oc.id AS campusid,
                     oc.shortname AS campusshortname
                FROM {local_organization_dept} od
                JOIN {local_organization_unit} ou ON ou.id = od.unit_id
@@ -245,9 +249,17 @@ if ($advisor_roles) {
             $deptshortnames[] = $deptrecord->deptshortname;
             $facultyshortnames[] = $deptrecord->facultyshortname;
             $campusshortnames[] = $deptrecord->campusshortname;
+            if (!empty($deptrecord->unitid)) {
+                $derivedunitids[] = (int) $deptrecord->unitid;
+            }
+            if (!empty($deptrecord->campusid)) {
+                $derivedcampusids[] = (int) $deptrecord->campusid;
+            }
         }
     }
 
+    $unitids = array_values(array_unique(array_merge($unitids, $derivedunitids)));
+    $campusids = array_values(array_unique(array_merge($campusids, $derivedcampusids)));
     $campusshortnames = array_values(array_unique(array_filter($campusshortnames)));
     $facultyshortnames = array_values(array_unique(array_filter($facultyshortnames)));
     $deptshortnames = array_values(array_unique(array_filter($deptshortnames)));
