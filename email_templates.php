@@ -154,7 +154,17 @@ $sql = 'e.deleted = 0 AND e.active = :active';
 
 $advisor_roles = base::get_advisor_roles();
 
-if ($advisor_roles) {
+// Site admins are not subject to organizational scope restrictions (consistent with the
+// rest of the plugin, e.g. clone_email.php, delete_email.php, edit_email.php).
+if (!is_siteadmin($USER->id)) {
+    if (empty($advisor_roles)) {
+        // Default-deny: a non-admin viewing this page has the capability but no
+        // organizational scope assigned in local_organization_advisor. Rather than
+        // silently falling through to an unfiltered (see-everything) query, block
+        // all results. Misconfigured accounts should see nothing until a proper
+        // scope (CAMPUS/UNIT/DEPARTMENT) is assigned.
+        $sql .= ' AND 1 = 0';
+    } else {
     $conditions = [];
     $paramindex = 0;
     $campusids = [];
@@ -186,6 +196,13 @@ if ($advisor_roles) {
     $campusids = array_values(array_unique($campusids));
     $unitids = array_values(array_unique($unitids));
     $deptids = array_values(array_unique($deptids));
+
+    // Snapshot the directly-assigned IDs now, before any derived IDs (from parent-scope
+    // expansion below) get merged in. These are used later to ensure inherited/derived
+    // scope is never mistaken for a direct assignment.
+    $direct_campusids = $campusids;
+    $direct_unitids = $unitids;
+    $direct_deptids = $deptids;
 
     $campusshortnames = [];
     $facultyshortnames = [];
@@ -283,11 +300,9 @@ if ($advisor_roles) {
          }
      }
 
-    // Keep track of directly-assigned IDs separately from derived IDs
-    $direct_campusids = $campusids;
-    $direct_unitids = $unitids;
-    $direct_deptids = $deptids;
-
+    // Merge derived (inherited) IDs into the main scope arrays now, for shortname extraction
+    // and display purposes. SQL conditions further below use $direct_*ids exclusively so
+    // derived/inherited scope never grants direct-context visibility it shouldn't have.
     $unitids = array_values(array_unique(array_merge($unitids, $derivedunitids)));
     $campusids = array_values(array_unique(array_merge($campusids, $derivedcampusids)));
     $campusshortnames = array_values(array_unique(array_filter($campusshortnames)));
@@ -335,6 +350,7 @@ if ($advisor_roles) {
      if (!empty($conditions)) {
          $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
      }
+    }
 }
 
 if (!empty($term_filter)) {

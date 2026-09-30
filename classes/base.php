@@ -326,14 +326,27 @@ class base
     }
 
     /**
-     * Return all roles the user has
+     * Return the organizational scope (CAMPUS/UNIT/DEPARTMENT) assignments for the current
+     * user, restricted to the 'ea_template_manager' role only.
+     *
+     * Other advisor-type roles (e.g. academic advisors) may also have rows in
+     * local_organization_advisor, but they should not grant any visibility into email
+     * templates. Only the ea_template_manager role is relevant for this plugin.
+     *
      * @return array
      * @throws \dml_exception
      */
     public static function get_advisor_roles() {
         global $DB, $USER;
-        // Get all assigned roles for the user
-        $advisor_roles = $DB->get_records('local_organization_advisor', ['user_id' => $USER->id]);
+        // Get all assigned roles for the user, restricted to the ea_template_manager role.
+        $advisor_roles = $DB->get_records_sql(
+            "SELECT loa.*
+               FROM {local_organization_advisor} loa
+               JOIN {role} r ON r.id = loa.role_id
+              WHERE loa.user_id = :userid
+                AND r.shortname = :roleshortname",
+            ['userid' => $USER->id, 'roleshortname' => 'ea_template_manager']
+        );
 
         $permissions = [];
         // Group all identical user_context into separate arrays. For example, all DEPARTMENT user_contexts should be in one array
