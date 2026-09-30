@@ -295,9 +295,23 @@ if ($advisor_roles) {
     $add_in_condition('e.faculty', $facultyshortnames, 'facultyshort', $params, $conditions, $paramindex);
     $add_in_condition('e.course', $deptshortnames, 'deptshort', $params, $conditions, $paramindex);
 
-    if (!empty($conditions)) {
-        $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
-    }
+     if (!empty($conditions)) {
+         $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
+     }
+
+     // DEBUG: Log conditions and shortnames for user 271
+     if ($USER->id == 271) {
+         error_log('DEBUG USER 271 - Mona Frial-Brown');
+         error_log('  direct_campusids: ' . json_encode($direct_campusids));
+         error_log('  direct_unitids: ' . json_encode($direct_unitids));
+         error_log('  direct_deptids: ' . json_encode($direct_deptids));
+         error_log('  campusshortnames: ' . json_encode($campusshortnames));
+         error_log('  facultyshortnames: ' . json_encode($facultyshortnames));
+         error_log('  deptshortnames: ' . json_encode($deptshortnames));
+         error_log('  conditions count: ' . count($conditions));
+         error_log('  conditions: ' . json_encode($conditions));
+         error_log('  Final SQL: ' . $sql);
+     }
 }
 
 if (!empty($term_filter)) {
