@@ -232,9 +232,9 @@ if ($advisor_roles) {
              }
          }
 
-         // Fetch all departments in user's assigned units
-         // Unit-assigned users should see all depts in their unit
-         [$insql_u, $inparams_u] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'unitsfordept');
+         // Fetch all departments in user's directly assigned units
+         // Only do this for direct UNIT assignments, not derived ones from DEPT assignments
+         [$insql_u, $inparams_u] = $DB->get_in_or_equal($direct_unitids, SQL_PARAMS_NAMED, 'unitsfordept');
          $all_unit_depts = $DB->get_records_sql(
              "SELECT od.shortname AS deptshortname
                 FROM {local_organization_dept} od
