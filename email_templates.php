@@ -291,26 +291,36 @@ if ($advisor_roles) {
     $add_in_condition('deptunit.campus_id', $direct_campusids, 'campusdept', $params, $conditions, $paramindex);
     $add_in_condition('deptctx.unit_id', $direct_unitids, 'unitdept', $params, $conditions, $paramindex);
 
-    $add_in_condition('e.campus', $campusshortnames, 'campusshort', $params, $conditions, $paramindex);
-    $add_in_condition('e.faculty', $facultyshortnames, 'facultyshort', $params, $conditions, $paramindex);
-    $add_in_condition('e.course', $deptshortnames, 'deptshort', $params, $conditions, $paramindex);
+     // Only filter by shortnames for campus_course templates
+     // to avoid matching campus/unit/dept context templates at the wrong level
+     if (!empty($campusshortnames) || !empty($facultyshortnames) || !empty($deptshortnames)) {
+         $shortname_conditions = [];
+
+         if (!empty($campusshortnames)) {
+             [$insql, $inparams] = $DB->get_in_or_equal($campusshortnames, SQL_PARAMS_NAMED, 'campusshort');
+             $shortname_conditions[] = "(e.template_type = 'campus_course' AND e.campus $insql)";
+             $params = array_merge($params, $inparams);
+         }
+
+         if (!empty($facultyshortnames)) {
+             [$insql, $inparams] = $DB->get_in_or_equal($facultyshortnames, SQL_PARAMS_NAMED, 'facultyshort');
+             $shortname_conditions[] = "(e.template_type = 'campus_course' AND e.faculty $insql)";
+             $params = array_merge($params, $inparams);
+         }
+
+         if (!empty($deptshortnames)) {
+             [$insql, $inparams] = $DB->get_in_or_equal($deptshortnames, SQL_PARAMS_NAMED, 'deptshort');
+             $shortname_conditions[] = "(e.template_type = 'campus_course' AND e.course $insql)";
+             $params = array_merge($params, $inparams);
+         }
+
+         if (!empty($shortname_conditions)) {
+             $conditions[] = '(' . implode(' OR ', $shortname_conditions) . ')';
+         }
+     }
 
      if (!empty($conditions)) {
          $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
-     }
-
-     // DEBUG: Log conditions and shortnames for user 271
-     if ($USER->id == 271) {
-         error_log('DEBUG USER 271 - Mona Frial-Brown');
-         error_log('  direct_campusids: ' . json_encode($direct_campusids));
-         error_log('  direct_unitids: ' . json_encode($direct_unitids));
-         error_log('  direct_deptids: ' . json_encode($direct_deptids));
-         error_log('  campusshortnames: ' . json_encode($campusshortnames));
-         error_log('  facultyshortnames: ' . json_encode($facultyshortnames));
-         error_log('  deptshortnames: ' . json_encode($deptshortnames));
-         error_log('  conditions count: ' . count($conditions));
-         error_log('  conditions: ' . json_encode($conditions));
-         error_log('  Final SQL: ' . $sql);
      }
 }
 
