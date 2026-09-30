@@ -231,7 +231,20 @@ if ($advisor_roles) {
                  $campusshortnames[] = $unitrecord->campusshortname;
              }
          }
-     }
+
+         // Fetch all departments in user's assigned units
+         // Unit-assigned users should see all depts in their unit
+         [$insql_u, $inparams_u] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'unitsfordept');
+         $all_unit_depts = $DB->get_records_sql(
+             "SELECT od.shortname AS deptshortname
+                FROM {local_organization_dept} od
+               WHERE od.unit_id $insql_u",
+             $inparams_u
+         );
+         foreach ($all_unit_depts as $deptrecord) {
+             $deptshortnames[] = $deptrecord->deptshortname;
+         }
+      }
 
     if (!empty($deptids)) {
          [$insql, $inparams] = $DB->get_in_or_equal($deptids, SQL_PARAMS_NAMED, 'deptscope');
