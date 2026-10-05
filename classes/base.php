@@ -654,7 +654,29 @@ class base
 
         switch ($unit_type) {
             case 'CAMPUS':
-                return in_array($unit_id, $campusids, false);
+                if (in_array($unit_id, $campusids, false)) {
+                    return true;
+                }
+                // Unit admins can access the campus-level templates of the campus their unit belongs to.
+                if (!empty($unitids)) {
+                    [$insql, $inparams] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'cuid');
+                    if ($DB->record_exists_select('local_organization_unit', "campus_id = :cid AND id $insql",
+                            array_merge(['cid' => $unit_id], $inparams))) {
+                        return true;
+                    }
+                }
+                // Department admins can access the campus-level templates of the campus their department belongs to.
+                if (!empty($deptids)) {
+                    [$insql, $inparams] = $DB->get_in_or_equal($deptids, SQL_PARAMS_NAMED, 'cdid');
+                    $sql = "SELECT 1
+                              FROM {local_organization_dept} d
+                              JOIN {local_organization_unit} u ON u.id = d.unit_id
+                             WHERE u.campus_id = :cid AND d.id $insql";
+                    if ($DB->record_exists_sql($sql, array_merge(['cid' => $unit_id], $inparams))) {
+                        return true;
+                    }
+                }
+                return false;
 
             case 'UNIT':
                 if (in_array($unit_id, $unitids, false)) {

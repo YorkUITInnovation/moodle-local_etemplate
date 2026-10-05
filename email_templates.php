@@ -310,6 +310,27 @@ if (!is_siteadmin($USER->id)) {
     $deptshortnames = array_values(array_unique(array_filter($deptshortnames)));
 
     $add_in_condition('campusctx.id', $direct_campusids, 'campusexact', $params, $conditions, $paramindex);
+
+    // Unit/department advisors can also see and edit the campus-level templates of the campus
+    // their unit/department belongs to (matches base::user_can_access_unit_value()).
+    $parentcampusids = [];
+    if (!empty($direct_unitids)) {
+        [$insql, $inparams] = $DB->get_in_or_equal($direct_unitids, SQL_PARAMS_NAMED, 'pcunit');
+        $parentcampusids = array_merge($parentcampusids,
+            $DB->get_fieldset_select('local_organization_unit', 'campus_id', "id $insql", $inparams));
+    }
+    if (!empty($direct_deptids)) {
+        [$insql, $inparams] = $DB->get_in_or_equal($direct_deptids, SQL_PARAMS_NAMED, 'pcdept');
+        $parentcampusids = array_merge($parentcampusids, $DB->get_fieldset_sql(
+            "SELECT u.campus_id
+               FROM {local_organization_dept} d
+               JOIN {local_organization_unit} u ON u.id = d.unit_id
+              WHERE d.id $insql",
+            $inparams
+        ));
+    }
+    $parentcampusids = array_values(array_unique(array_map('intval', $parentcampusids)));
+    $add_in_condition('campusctx.id', $parentcampusids, 'campusparent', $params, $conditions, $paramindex);
     $add_in_condition('unitctx.id', $direct_unitids, 'unitexact', $params, $conditions, $paramindex);
     $add_in_condition('deptctx.id', $direct_deptids, 'deptexact', $params, $conditions, $paramindex);
 
