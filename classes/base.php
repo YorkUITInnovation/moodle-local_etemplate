@@ -617,7 +617,63 @@ class base
             $unit_value = self::get_unit_value_from_template_data($record) ?? '';
         }
 
-        return self::user_can_access_unit_value($unit_value, null, $userid);
+        return self::user_can_access_unit_value($unit_value, null, $userid)
+            || self::user_can_access_course_template($record, $userid);
+    }
+
+    /**
+     * Check access to a course-level template (template_type campus_course with a course set).
+     *
+     * These templates are stored with a campus context, but belong to the department identified by
+     * campus shortname + course (department shortname) and optionally faculty (unit shortname).
+     * Access is granted when the user is an advisor of that department, of its unit, or of its campus.
+     *
+     * @param \stdClass $record Row from local_et_email.
+     * @param int|null  $userid Defaults to $USER->id.
+     * @return bool
+     */
+    public static function user_can_access_course_template(\stdClass $record, ?int $userid = null): bool {
+        global $USER, $DB;
+
+        $userid = $userid ?? (int) $USER->id;
+        if (is_siteadmin($userid)) {
+            return true;
+        }
+
+        if (($record->template_type ?? '') !== 'campus_course' || empty($record->course) || empty($record->campus)) {
+            return false;
+        }
+
+        $roles = self::get_advisor_roles();
+        if (empty($roles)) {
+            return false;
+        }
+        $campusids = array_column($roles['CAMPUS'] ?? [], 'instance_id');
+        $unitids   = array_column($roles['UNIT'] ?? [], 'instance_id');
+        $deptids   = array_merge(
+            array_column($roles['DEPARTMENT'] ?? [], 'instance_id'),
+            array_column($roles['DEPT'] ?? [], 'instance_id')
+        );
+
+        $sql = "SELECT d.id AS deptid, u.id AS unitid, c.id AS campusid
+                  FROM {local_organization_dept} d
+                  JOIN {local_organization_unit} u ON u.id = d.unit_id
+                  JOIN {local_organization_campus} c ON c.id = u.campus_id
+                 WHERE d.shortname = :course AND c.shortname = :campus";
+        $params = ['course' => $record->course, 'campus' => $record->campus];
+        if (!empty($record->faculty)) {
+            $sql .= ' AND u.shortname = :faculty';
+            $params['faculty'] = $record->faculty;
+        }
+
+        foreach ($DB->get_records_sql($sql, $params) as $row) {
+            if (in_array((int)$row->deptid, array_map('intval', $deptids), true)
+                    || in_array((int)$row->unitid, array_map('intval', $unitids), true)
+                    || in_array((int)$row->campusid, array_map('intval', $campusids), true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static function user_can_access_unit_value(string $unit_value, ?array $advisor_roles = null, ?int $userid = null): bool {
@@ -654,29 +710,7 @@ class base
 
         switch ($unit_type) {
             case 'CAMPUS':
-                if (in_array($unit_id, $campusids, false)) {
-                    return true;
-                }
-                // Unit admins can access the campus-level templates of the campus their unit belongs to.
-                if (!empty($unitids)) {
-                    [$insql, $inparams] = $DB->get_in_or_equal($unitids, SQL_PARAMS_NAMED, 'cuid');
-                    if ($DB->record_exists_select('local_organization_unit', "campus_id = :cid AND id $insql",
-                            array_merge(['cid' => $unit_id], $inparams))) {
-                        return true;
-                    }
-                }
-                // Department admins can access the campus-level templates of the campus their department belongs to.
-                if (!empty($deptids)) {
-                    [$insql, $inparams] = $DB->get_in_or_equal($deptids, SQL_PARAMS_NAMED, 'cdid');
-                    $sql = "SELECT 1
-                              FROM {local_organization_dept} d
-                              JOIN {local_organization_unit} u ON u.id = d.unit_id
-                             WHERE u.campus_id = :cid AND d.id $insql";
-                    if ($DB->record_exists_sql($sql, array_merge(['cid' => $unit_id], $inparams))) {
-                        return true;
-                    }
-                }
-                return false;
+                return in_array($unit_id, $campusids, false);
 
             case 'UNIT':
                 if (in_array($unit_id, $unitids, false)) {

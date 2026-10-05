@@ -310,27 +310,6 @@ if (!is_siteadmin($USER->id)) {
     $deptshortnames = array_values(array_unique(array_filter($deptshortnames)));
 
     $add_in_condition('campusctx.id', $direct_campusids, 'campusexact', $params, $conditions, $paramindex);
-
-    // Unit/department advisors can also see and edit the campus-level templates of the campus
-    // their unit/department belongs to (matches base::user_can_access_unit_value()).
-    $parentcampusids = [];
-    if (!empty($direct_unitids)) {
-        [$insql, $inparams] = $DB->get_in_or_equal($direct_unitids, SQL_PARAMS_NAMED, 'pcunit');
-        $parentcampusids = array_merge($parentcampusids,
-            $DB->get_fieldset_select('local_organization_unit', 'campus_id', "id $insql", $inparams));
-    }
-    if (!empty($direct_deptids)) {
-        [$insql, $inparams] = $DB->get_in_or_equal($direct_deptids, SQL_PARAMS_NAMED, 'pcdept');
-        $parentcampusids = array_merge($parentcampusids, $DB->get_fieldset_sql(
-            "SELECT u.campus_id
-               FROM {local_organization_dept} d
-               JOIN {local_organization_unit} u ON u.id = d.unit_id
-              WHERE d.id $insql",
-            $inparams
-        ));
-    }
-    $parentcampusids = array_values(array_unique(array_map('intval', $parentcampusids)));
-    $add_in_condition('campusctx.id', $parentcampusids, 'campusparent', $params, $conditions, $paramindex);
     $add_in_condition('unitctx.id', $direct_unitids, 'unitexact', $params, $conditions, $paramindex);
     $add_in_condition('deptctx.id', $direct_deptids, 'deptexact', $params, $conditions, $paramindex);
 
@@ -353,6 +332,42 @@ if (!is_siteadmin($USER->id)) {
      $add_in_condition('coursecampus.id', $direct_campusids, 'coursecampusid', $params, $conditions, $paramindex);
      $add_in_condition('courseunit.id', $direct_unitids, 'courseunitid', $params, $conditions, $paramindex);
      $add_in_condition('coursedept.id', $coursedeptids, 'coursedeptid', $params, $conditions, $paramindex);
+
+     // Course-level templates (campus_course with a course set) can be stored with a campus context and
+     // no faculty. Resolve their department from campus + course (+ faculty when set) and match it
+     // against the user's own department/unit/campus scope. Mirrors base::user_can_access_course_template().
+     $scopeparts = [];
+     $scopeparams = [];
+     if (!empty($direct_deptids)) {
+         [$insql, $inparams] = $DB->get_in_or_equal($direct_deptids, SQL_PARAMS_NAMED, 'ccdept');
+         $scopeparts[] = "d.id $insql";
+         $scopeparams += $inparams;
+     }
+     if (!empty($direct_unitids)) {
+         [$insql, $inparams] = $DB->get_in_or_equal($direct_unitids, SQL_PARAMS_NAMED, 'ccunit');
+         $scopeparts[] = "u.id $insql";
+         $scopeparams += $inparams;
+     }
+     if (!empty($direct_campusids)) {
+         [$insql, $inparams] = $DB->get_in_or_equal($direct_campusids, SQL_PARAMS_NAMED, 'cccampus');
+         $scopeparts[] = "u.campus_id $insql";
+         $scopeparams += $inparams;
+     }
+     if (!empty($scopeparts)) {
+         $conditions[] = "(e.template_type = 'campus_course'
+             AND e.course IS NOT NULL AND e.course <> ''
+             AND EXISTS (
+                 SELECT 1
+                   FROM {local_organization_dept} d
+                   JOIN {local_organization_unit} u ON u.id = d.unit_id
+                   JOIN {local_organization_campus} c ON c.id = u.campus_id
+                  WHERE d.shortname = e.course
+                    AND c.shortname = e.campus
+                    AND (e.faculty IS NULL OR e.faculty = '' OR u.shortname = e.faculty)
+                    AND (" . implode(' OR ', $scopeparts) . ")
+             ))";
+         $params = array_merge($params, $scopeparams);
+     }
 
      if (!empty($conditions)) {
          $sql .= ' AND (' . implode(' OR ', $conditions) . ')';

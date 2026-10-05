@@ -87,9 +87,10 @@ if ($id) {
         if ($unit_value === '' || strpos($unit_value, '_') === false) {
             $unit_value = (string)(base::get_unit_value_from_template_data($formdata) ?? '');
         }
-        if (!base::user_can_access_unit_value($unit_value)) {
+        if (!base::user_can_access_unit_value($unit_value) && !base::user_can_access_template_id((int)$id)) {
             throw new \moodle_exception('nopermissions', 'error',
-                $CFG->wwwroot . '/local/etemplate/email_templates.php');
+                $CFG->wwwroot . '/local/etemplate/email_templates.php',
+                'edit this template: it is outside your assigned campus/faculty/department');
         }
     }
 
@@ -133,7 +134,9 @@ if ($mform->is_cancelled()) {
 } else if (!$view && ($data = $mform->get_data())) {
     // Re-validate unit access on save to prevent tampering via direct POST.
     if (!is_siteadmin($USER->id)) {
-        if (!base::user_can_access_unit_value($data->unit ?? '')) {
+        $canaccess = base::user_can_access_unit_value($data->unit ?? '')
+            || (!empty($data->id) && base::user_can_access_template_id((int)$data->id));
+        if (!$canaccess) {
             \core\notification::error(get_string('nopermissions', 'error', 'save this template: unit outside your assigned scope'));
             redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
         }
