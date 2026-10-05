@@ -670,6 +670,7 @@ class base
                 }
                 return false;
 
+            case 'DEPARTMENT':
             case 'DEPT':
                 if (in_array($unit_id, $deptids, false)) {
                     return true;

@@ -82,7 +82,11 @@ if ($id) {
 
     // Unit-level access gate: verify the current user's advisor scope covers this template.
     if (!is_siteadmin($USER->id)) {
-        $unit_value = $formdata->unit ?? '';
+        $unit_value = (string)($formdata->unit ?? '');
+        // Legacy templates have no stored unit context ("id_TYPE"); derive it from campus/faculty/department.
+        if ($unit_value === '' || strpos($unit_value, '_') === false) {
+            $unit_value = (string)(base::get_unit_value_from_template_data($formdata) ?? '');
+        }
         if (!base::user_can_access_unit_value($unit_value)) {
             throw new \moodle_exception('nopermissions', 'error',
                 $CFG->wwwroot . '/local/etemplate/email_templates.php');
@@ -130,7 +134,7 @@ if ($mform->is_cancelled()) {
     // Re-validate unit access on save to prevent tampering via direct POST.
     if (!is_siteadmin($USER->id)) {
         if (!base::user_can_access_unit_value($data->unit ?? '')) {
-            \core\notification::error(get_string('nopermissions', 'error'));
+            \core\notification::error(get_string('nopermissions', 'error', 'save this template: unit outside your assigned scope'));
             redirect($CFG->wwwroot . '/local/etemplate/email_templates.php');
         }
     }
