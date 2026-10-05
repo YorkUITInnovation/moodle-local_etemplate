@@ -340,33 +340,19 @@ if (!is_siteadmin($USER->id)) {
     $add_in_condition('deptunit.campus_id', $direct_campusids, 'campusdept', $params, $conditions, $paramindex);
     $add_in_condition('deptctx.unit_id', $direct_unitids, 'unitdept', $params, $conditions, $paramindex);
 
-     // Only filter by shortnames for campus_course templates
-     // to avoid matching campus/unit/dept context templates at the wrong level
-     if (!empty($campusshortnames) || !empty($facultyshortnames) || !empty($deptshortnames)) {
-         $shortname_conditions = [];
-
-         if (!empty($campusshortnames)) {
-             [$insql, $inparams] = $DB->get_in_or_equal($campusshortnames, SQL_PARAMS_NAMED, 'campusshort');
-             $shortname_conditions[] = "(e.template_type = 'campus_course' AND e.campus $insql)";
-             $params = array_merge($params, $inparams);
-         }
-
-         if (!empty($facultyshortnames)) {
-             [$insql, $inparams] = $DB->get_in_or_equal($facultyshortnames, SQL_PARAMS_NAMED, 'facultyshort');
-             $shortname_conditions[] = "(e.template_type = 'campus_course' AND e.faculty $insql)";
-             $params = array_merge($params, $inparams);
-         }
-
-         if (!empty($deptshortnames)) {
-             [$insql, $inparams] = $DB->get_in_or_equal($deptshortnames, SQL_PARAMS_NAMED, 'deptshort');
-             $shortname_conditions[] = "(e.template_type = 'campus_course' AND e.course $insql)";
-             $params = array_merge($params, $inparams);
-         }
-
-         if (!empty($shortname_conditions)) {
-             $conditions[] = '(' . implode(' OR ', $shortname_conditions) . ')';
-         }
+     // Campus-course templates: match on the real hierarchy ids resolved by the joins above
+     // (coursecampus/courseunit/coursedept already enforce campus -> unit -> dept membership),
+     // not on shortnames, which can repeat across campuses and units.
+     $unitdeptids = [];
+     if (!empty($direct_unitids)) {
+         [$insql, $inparams] = $DB->get_in_or_equal($direct_unitids, SQL_PARAMS_NAMED, 'cuunit');
+         $unitdeptids = $DB->get_fieldset_select('local_organization_dept', 'id', "unit_id $insql", $inparams);
      }
+     $coursedeptids = array_values(array_unique(array_merge($direct_deptids, $unitdeptids)));
+
+     $add_in_condition('coursecampus.id', $direct_campusids, 'coursecampusid', $params, $conditions, $paramindex);
+     $add_in_condition('courseunit.id', $direct_unitids, 'courseunitid', $params, $conditions, $paramindex);
+     $add_in_condition('coursedept.id', $coursedeptids, 'coursedeptid', $params, $conditions, $paramindex);
 
      if (!empty($conditions)) {
          $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
