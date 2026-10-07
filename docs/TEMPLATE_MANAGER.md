@@ -2,184 +2,146 @@
 
 ## Overview
 
-The Local ETemplate plugin uses a role-based access control system that grants template managers visibility into email templates based on their organizational scope assignments. Template managers can view and edit templates appropriate to their scope level.
+Template managers are users holding the `ea_template_manager` role through rows in
+`local_organization_advisor`. Their organizational scope (campus, unit or department) decides
+which email templates they can **see** (list page) and **open/edit/clone/delete** (direct URL).
+Site admins bypass all scope checks.
+
+The list and the access checks apply the same rules:
+
+| Concern | Where |
+|---|---|
+| List filtering | `email_templates.php` (SQL conditions) |
+| Access by template id | `base::user_can_access_template_id()` |
+| Access by form unit value (`id_TYPE`) | `base::user_can_access_unit_value()` |
+| Course-level templates | `base::user_can_access_course_template()` |
 
 ## Template Types
 
-There are two primary template types used in the system:
-
 ### 1. Campus Faculty Templates (`campus_faculty`)
-- **Context**: `UNIT` (Faculty level)
-- **Usage**: Faculty-level email alerts
-- **Scope Fields**: `unit`, `faculty` (shortname of the faculty/unit)
-- **Example**: "LAPS: Missed Assignment" for Faculty of Liberal Arts and Professional Studies
-- **Visibility**: Users assigned to that specific UNIT scope
+- Stored with `context` (`CAMPUS`, `UNIT` or `DEPT`) and `unit` (id of that context).
+- A template with `context = CAMPUS` is a **campus-only** template (e.g. "Keele Campus - Commendation").
+- A template with `context = UNIT` / `DEPT` is a unit- or department-level template.
 
 ### 2. Campus Course Templates (`campus_course`)
-- **Context**: `CAMPUS` (stored at campus level but matched to courses)
-- **Usage**: Course-level email alerts
-- **Scope Fields**: 
-  - `campus` (campus shortname, e.g., 'YK')
-  - `faculty` (faculty/unit shortname, e.g., 'AP')
-  - `course` (department shortname used as course code, e.g., 'ADMS', 'ECON')
-- **Example**: "AP ADMS 1010: Missed Assignment"
-- **Visibility**: Based on inherited hierarchy - users see templates matching their assigned scope
+- Usually stored with `context = CAMPUS` and the campus id in `unit`, **but they are not campus-only templates**.
+- Identified by the `course` field being set. Fields:
+  - `campus`: campus shortname (e.g. `YK`)
+  - `faculty`: unit shortname (e.g. `AP`), optional
+  - `course`: department shortname (e.g. `ADMS`, `NURS`)
+- Their scope is the **department** whose shortname equals `course`, in the campus whose shortname equals `campus`
+  (and, if `faculty` is set, the unit whose shortname equals `faculty`).
+- Examples:
+  - `81, 1, CAMPUS, YK, ADMS, "AP ADMS 1000: Low Grade", campus_course` is scoped to department ADMS.
+  - `89, 1, CAMPUS, YK, (no course), "Keele Campus - Commendation", campus_faculty` is campus-only.
 
-## Scope Hierarchy and Inheritance
-
-The organizational structure follows a three-level hierarchy:
+## Hierarchy
 
 ```
-CAMPUS (e.g., Keele/York campus)
-  ├── UNIT/FACULTY (e.g., Faculty of Liberal Arts and Professional Studies = AP)
-  │     ├── DEPARTMENT (e.g., Economics = ECON)
-  │     └── DEPARTMENT (e.g., Administration = ADMS)
-  └── UNIT/FACULTY (e.g., Faculty of Education = ED)
-        └── DEPARTMENT (...)
+CAMPUS
+  └── UNIT / FACULTY
+        └── DEPARTMENT
 ```
 
-### Scope Assignment Types
+Advisor rows are stored with `user_context` of `CAMPUS`, `UNIT` or `DEPARTMENT` (`DEPT` is also accepted)
+and an `instance_id`. Only rows whose role shortname is exactly `ea_template_manager` count.
+The role is assigned at system level; the advisor row alone defines the scope.
 
-#### CAMPUS-Assigned Users
-- **Assignment Level**: Campus
-- **Visibility**:
-  - ✅ All `campus_faculty` templates for their campus
-  - ✅ All `campus_course` templates for their campus (all faculties and courses)
-  - ❌ Templates from other campuses
-- **Use Case**: Campus-wide administrators managing institution-level alerts
+## Visibility and Edit Rules
 
-#### UNIT-Assigned Users (Faculty Level)
-- **Assignment Level**: Specific faculty/unit within a campus
-- **Visibility**:
-  - ✅ Unit-level `campus_faculty` templates for their unit
-  - ✅ `campus_course` templates matching their unit shortname (faculty level)
-  - ✅ `campus_course` templates for all courses within their unit
-  - ❌ Other faculty templates
-  - ❌ Campus-level `campus_course` templates (context='CAMPUS' with no faculty/course restrictions)
-- **Use Case**: Faculty administrators managing faculty and course-specific alerts
-- **Example**: User assigned to UNIT 6 (AP/LAPS) sees:
-  - LAPS faculty templates
-  - All ADMS, ECON, etc. course templates (departments within LAPS)
+| Template | CAMPUS advisor | UNIT advisor | DEPARTMENT advisor |
+|---|---|---|---|
+| Campus-only (`context = CAMPUS`, no course) | Own campus only | No | No |
+| Unit-level (`context = UNIT`) | Units in own campus | Own unit | No |
+| Department-level (`context = DEPT`) | Departments in own campus | Departments in own unit | Own department |
+| Course-level (`campus_course` with `course`) | Departments in own campus | Departments in own unit | Own department |
 
-#### DEPARTMENT-Assigned Users (Course Level)
-- **Assignment Level**: Specific department/course
-- **Visibility**:
-  - ✅ `campus_course` templates matching their department shortname only
-  - ❌ Other department templates
-  - ❌ Faculty-level templates
-  - ❌ Campus-level templates
-- **Use Case**: Department-level managers (e.g., ECON department) managing their course alerts
-- **Example**: User assigned to DEPT 83 (ECON) sees:
-  - Only templates with `e.course='ECON'`
+Notes:
+- **Campus-only templates require a direct `CAMPUS` advisor row.** Unit and department advisors never see them.
+- A course-level template is matched through its resolved department. Whoever manages that department,
+  its unit or its campus has access. Other departments (e.g. NURS for an AP/ADMS user) stay hidden.
+- Department shortnames are resolved within the campus (and unit, if `faculty` is set), so a shortname
+  reused in another campus or unit does not leak.
+- Inactive templates (`active = 0`) follow the same scope.
 
-## Scope Derivation Logic
+## How the Checks Work
 
-When determining template visibility, the system performs the following steps:
+### Roles (`base::get_advisor_roles()`)
+Returns the user's `local_organization_advisor` rows, joined to `{role}` and filtered to
+`shortname = 'ea_template_manager'`, grouped by `user_context`.
 
-1. **Load Direct Assignments**
-   - Site admins bypass all scope restrictions entirely (see all templates).
-   - `base::get_advisor_roles()` fetches the user's rows from `local_organization_advisor`,
-     **joined against `{role}` and filtered to `shortname = 'ea_template_manager'`**. Other
-     advisor-type roles (e.g. academic advisor roles) that may also have rows in this table
-     are explicitly excluded — they grant no template visibility.
-   - If a non-admin user has the `local/etemplate:view` capability but **zero** matching
-     `ea_template_manager` assignments, the query **default-denies**: no templates are
-     returned at all, rather than silently falling through to an unfiltered (see-everything)
-     result. This protects against misconfigured accounts.
-   - Otherwise, assignments are separated into: `direct_campusids`, `direct_unitids`, `direct_deptids`.
+### List page (`email_templates.php`)
+1. Site admins: no scope filter.
+2. Non-admin with no advisor rows: **default-deny** (`AND 1 = 0`). Never an unfiltered list.
+3. Otherwise the directly assigned ids are snapshotted (`$direct_campusids`, `$direct_unitids`, `$direct_deptids`).
+   Derived/inherited ids are never used to grant direct-context visibility.
+4. Conditions, combined with OR:
+   - `campusctx.id IN direct campuses` (campus-only templates)
+   - `unitctx.id IN direct units`; `deptctx.id IN direct depts`
+   - `unitctx.campus_id` / `deptunit.campus_id IN direct campuses` (campus advisor inherits)
+   - `deptctx.unit_id IN direct units` (unit advisor inherits departments)
+   - Course-level templates: `coursecampus` / `courseunit` / `coursedept` ids (resolved by the joins, which
+     enforce campus -> unit -> dept) matched against direct campuses, direct units and
+     direct departments plus all departments of direct units.
+   - An `EXISTS` check for `campus_course` templates with a `course`, resolving the department from
+     campus + course (+ faculty) and matching the user's department, unit or campus.
+5. A search term (`q`) is ANDed on the template name.
 
-2. **Extract Shortnames**
-   - Campus-assigned users: Extract campus shortnames (e.g., 'YK')
-   - Unit-assigned users: Extract unit shortnames (e.g., 'AP') + all dept shortnames within their units
-   - Dept-assigned users: Extract only their assigned dept shortnames
+### Access by id (`base::user_can_access_template_id()`)
+Used by `edit_email.php` (on open and on save), `clone_email.php`, `delete_email.php`,
+`undelete_email.php` and `classes/external/email_ws.php`.
+1. Site admins: allowed. Missing template: denied.
+2. Unit value = `unit_context` from the stored `unit` and `context`; if either is empty it is derived from
+   campus/faculty/department (`get_unit_value_from_template_data()`).
+3. Allowed if `user_can_access_unit_value()` **or** `user_can_access_course_template()` passes.
 
-3. **Build SQL Conditions**
-   - Match `campusctx.id`, `unitctx.id`, `deptctx.id` for context-specific templates
-   - Match `e.campus`, `e.faculty`, `e.course` for `campus_course` templates (and **only** for campus_course!)
-   - Combine with OR logic so users see any template matching their scope
+### Unit value check (`base::user_can_access_unit_value()`)
+Value format is `id_TYPE`:
+- `CAMPUS`: user needs a `CAMPUS` row for that id.
+- `UNIT`: a `UNIT` row for that id, or a `CAMPUS` row for the unit's campus.
+- `DEPARTMENT` / `DEPT`: a department row for that id, a `UNIT` row for its unit, or a `CAMPUS` row for its campus.
 
-4. **Filter Results**
-   - Only `campus_course` templates are matched by shortnames to prevent scope bleeding
-   - Context-specific templates are matched by exact ID
+### Course template check (`base::user_can_access_course_template()`)
+Only for `template_type = 'campus_course'` with `course` and `campus` set. Resolves the department by
+shortname within the campus (and unit when `faculty` is set), then allows a matching department,
+unit or campus advisor.
 
-## Important: Department Context Deprecation
+### Edit page (`edit_email.php`)
+- On open and on save the stored template is checked with `user_can_access_template_id()`, in addition
+  to the posted unit value, so a modified form cannot bypass the scope.
+- Denials show a message naming the failed check instead of a raw `{$a}`.
 
-**Note**: The `DEPARTMENT` context template type has been deprecated in favor of the `campus_course` type. 
+## Examples
 
-**Current State**:
-- No active templates use `context='DEPARTMENT'` in production
-- All new alerts are created as `campus_course` type
-- Template managers are assigned at `CAMPUS` or `UNIT` level (not DEPARTMENT level)
+User with UNIT 6 (AP) and DEPARTMENT 83:
 
-**However**:
-- DEPARTMENT-level scope assignments are still supported for backward compatibility
-- Users assigned to a DEPARTMENT see only `campus_course` templates matching that department's shortname
-- This can be useful for department-specific course alert management
+| Template | Result |
+|---|---|
+| 26: unit 6, `UNIT` | Visible and editable |
+| 81: `campus_course`, course ADMS | Visible if ADMS is in unit 6 or is department 83 |
+| 68: `campus_course`, course NURS | Hidden |
+| 89: campus-only (`CAMPUS`) | Hidden (needs a `CAMPUS` row) |
 
-## SQL Query Examples
+## Troubleshooting
 
-### User with CAMPUS Assignment
-```sql
-WHERE (
-  campusctx.id IN (1)  -- Keele campus
-  OR (e.template_type = 'campus_course' AND e.campus IN ('YK'))
-)
-```
-Result: Sees all Keele campus-level templates
-
-### User with UNIT Assignment (Faculty Level)
-```sql
-WHERE (
-  unitctx.id IN (6)  -- LAPS unit
-  OR (e.template_type = 'campus_course' AND e.faculty IN ('AP'))
-  OR (e.template_type = 'campus_course' AND e.course IN ('ADMS', 'ECON', ...))
-)
-```
-Result: Sees LAPS faculty templates and all course templates for LAPS departments
-
-### User with DEPARTMENT Assignment (Course Level)
-```sql
-WHERE (
-  (e.template_type = 'campus_course' AND e.course IN ('ECON'))
-)
-```
-Result: Sees only ECON course-based templates
-
-## Key Implementation Details
-
-### File: `/local/etemplate/email_templates.php`
-
-**Scope Extraction** (Lines 216-271)
-- Fetches user's advisor role assignments
-- For UNIT assignments: Queries parent unit and derives all departments within that unit
-- For DEPT assignments: Only uses directly assigned departments
-- Uses `$direct_*ids` to prevent scope inflation when merging derived assignments
-
-**Template Filtering** (Lines 284-320)
-- Context templates (CAMPUS, UNIT, DEPT) matched by exact ID
-- Campus_course templates matched by shortnames with explicit type check
-- Prevents non-campus_course templates from matching on shortname fields
-
-### Shortname Fields in Templates
-- `e.campus`: Campus shortname (e.g., 'YK' for York Keele campus)
-- `e.faculty`: Faculty/unit shortname (e.g., 'AP' for LAPS)
-- `e.course`: Department shortname used as course identifier (e.g., 'ECON', 'ADMS')
-
-These fields are populated at template creation time to enable course-level filtering without querying the organization hierarchy at display time.
+- Check advisor rows:
+  `SELECT loa.*, r.shortname FROM mdl_local_organization_advisor loa JOIN mdl_role r ON r.id = loa.role_id WHERE loa.user_id = <id>;`
+- Check the template: `SELECT id, unit, context, campus, faculty, course, template_type FROM mdl_local_et_email WHERE id = <id>;`
+- A user with the capability but no `ea_template_manager` row sees an empty list.
+- For course templates, confirm the `course` shortname exists as a department under that campus/unit.
 
 ## Testing Checklist
 
-When verifying template manager functionality:
-
-- [ ] CAMPUS-assigned user sees campus-level and all course templates
-- [ ] CAMPUS-assigned user does NOT see other campus templates
-- [ ] UNIT-assigned user sees unit/faculty templates
-- [ ] UNIT-assigned user sees all courses in their unit
-- [ ] UNIT-assigned user does NOT see other faculty templates
-- [ ] UNIT-assigned user does NOT see campus-level (context='CAMPUS') templates
-- [ ] DEPT-assigned user sees only their department's courses
-- [ ] DEPT-assigned user does NOT see faculty-level templates
-- [ ] Template pagination preserves scope filters
-- [ ] Clone operation returns user to same filtered list
-- [ ] Search/filter context is maintained across page navigation
+- [ ] CAMPUS user sees campus-only, unit, department and course templates for their campus only
+- [ ] UNIT user sees own unit, its departments and course templates for those departments
+- [ ] UNIT user does NOT see campus-only templates or other units
+- [ ] DEPARTMENT user sees only own department and its course templates
+- [ ] User with no advisor rows sees an empty list; direct URL is blocked
+- [ ] Hidden templates are also blocked by URL (edit, clone, delete, undelete)
+- [ ] Course template with a non-matching `faculty` is hidden
+- [ ] A department shortname reused in another campus/unit does not leak
+- [ ] Posting the edit form with a changed unit is blocked on save
+- [ ] Inactive list follows the same scope
+- [ ] Impersonating ("Log in as") a manager applies that manager's scope
+- [ ] Pagination, search and clone keep the filtered list
 
